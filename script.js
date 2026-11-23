@@ -4709,7 +4709,7 @@ if (window.location.pathname.includes('graduation.html')) {
                     const scoreResult = evaluateCertificate(type, scoreRaw);
                     const dateResult = checkCertificateDate(document.getElementById('cert-date').value);
                     const outcome = scoreResult.valid && scoreResult.passed ? dateResult : scoreResult;
-                    resultEl.style.color = outcome.valid && outcome.passed ? '#059669' : '#ef4444';
+                    resultEl.style.color = scoreResult.valid && scoreResult.passed && dateResult.valid ? '#059669' : '#ef4444';
                     resultEl.textContent = type ? outcome.message : 'Vui lòng chọn chứng chỉ!';
                 });
             }
