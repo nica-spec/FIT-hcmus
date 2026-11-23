@@ -1385,30 +1385,37 @@ function showDashboardDetails(user) {
     modal.innerHTML=`<section class="report-modal"><button class="report-modal-close" aria-label="Đóng">×</button><h2>Chi tiết kết quả học tập</h2><p>Đã tích lũy <strong>${metrics.earnedCredits}</strong> tín chỉ (không gồm Anh văn, GDTC, GDQP-AN). GPA tích lũy (môn đạt): <strong>${metrics.passedGPA10.toFixed(2)}/10</strong>.</p><div class="report-scroll"><table class="report-table"><thead><tr><th>Mã môn</th><th>Tên môn</th><th>TC</th><th>Điểm</th><th>Kết quả</th><th>Tín chỉ tích lũy</th></tr></thead><tbody>${rows||'<tr><td colspan="6">Chưa có bảng điểm</td></tr>'}</tbody></table></div><p><a href="grades.html">Đi đến bảng điểm đầy đủ</a></p></section>`;
     modal.querySelector('.report-modal-close').onclick=()=>modal.remove();
 }
-// Chứng chỉ ngoại ngữ được công nhận tối đa 2 năm từ ngày cấp đến ngày xét.
-// So sánh theo ngày lịch địa phương, không tính số mili giây hay 730 ngày cố định.
-function checkCertificateDate(raw, evaluationDate = new Date()) {
-    const input = String(raw ?? '').trim();
-    const invalid = message => ({ valid:false, message });
-    if (!input) return invalid('Vui lòng nhập ngày cấp chứng chỉ (dd/mm/yyyy).');
-    const match = input.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (!match) return invalid('Ngày cấp phải đúng định dạng dd/mm/yyyy.');
-    const day = Number(match[1]), month = Number(match[2]), year = Number(match[3]);
-    const issued = new Date(year, month - 1, day);
-    if (issued.getFullYear() !== year || issued.getMonth() !== month - 1 || issued.getDate() !== day) {
-        return invalid('Ngày cấp chứng chỉ không tồn tại.');
-    }
-    const evaluated = new Date(evaluationDate.getFullYear(), evaluationDate.getMonth(), evaluationDate.getDate());
-    if (issued > evaluated) return invalid('Ngày cấp chứng chỉ không được sau ngày xét.');
-    // Đến đúng ngày kỷ niệm 2 năm vẫn hợp lệ; sau ngày đó là hết hạn.
-    const expiry = new Date(year + 2, month - 1, day);
-    // 29/02: chọn ngày cuối tháng 2 trong năm không nhuận.
-    if (month === 2 && day === 29 && expiry.getMonth() !== 1) {
-        expiry.setDate(0);
-    }
-    const expiresText = [String(expiry.getDate()).padStart(2,'0'), String(expiry.getMonth()+1).padStart(2,'0'), expiry.getFullYear()].join('/');
-    if (evaluated > expiry) return invalid('Chứng chỉ đã quá hạn 2 năm (hạn cuối: ' + expiresText + ').');
-    return {valid:true, message:'Chứng chỉ còn hiệu lực đến hết ngày ' + expiresText + '.', expiresText};
+// Ngày nộp chứng chỉ là mốc kiểm tra hiệu lực 2 năm, không dùng ngày hiện tại.
+// Giữ dạng dd/mm/yyyy để tương thích với dữ liệu ngày cấp đã lưu.
+function checkCertificateDate(rawIssue, rawSubmit) {
+    const invalid = message => ({valid:false, message});
+    const parseDate = (raw, label) => {
+        const value = String(raw ?? '').trim();
+        if (!value) return {error:'Vui lòng nhập ' + label.toLowerCase() + ' (dd/mm/yyyy).'};
+        const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (!match) return {error:label + ' phải đúng định dạng dd/mm/yyyy.'};
+        const day = Number(match[1]), month = Number(match[2]), year = Number(match[3]);
+        const parsed = new Date(0);
+        parsed.setFullYear(year, month - 1, day);
+        parsed.setHours(0, 0, 0, 0);
+        if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
+            return {error:label + ' không tồn tại.'};
+        }
+        return {date:parsed};
+    };
+    const issued = parseDate(rawIssue, 'Ngày cấp');
+    if (issued.error) return invalid(issued.error);
+    const submitted = parseDate(rawSubmit, 'Ngày nộp');
+    if (submitted.error) return invalid(submitted.error);
+    if (submitted.date < issued.date) return invalid('Ngày nộp không được trước ngày cấp chứng chỉ.');
+    const expiry = new Date(issued.date);
+    const originalMonth = issued.date.getMonth();
+    expiry.setFullYear(issued.date.getFullYear() + 2);
+    if (expiry.getMonth() !== originalMonth) expiry.setDate(0); // Ngày 29/02 trong năm không nhuận.
+    const fmt = d => [String(d.getDate()).padStart(2,'0'), String(d.getMonth()+1).padStart(2,'0'), d.getFullYear()].join('/');
+    const expiresText = fmt(expiry);
+    if (submitted.date > expiry) return invalid('Chứng chỉ đã quá hạn 2 năm tại ngày nộp ' + fmt(submitted.date) + ' (hạn cuối: ' + expiresText + ').');
+    return {valid:true, message:'Chứng chỉ còn hiệu lực tại ngày nộp ' + fmt(submitted.date) + ' (hạn cuối: ' + expiresText + ').', expiresText};
 }
 
 function exportGraduationReport(user) {
@@ -1433,7 +1440,7 @@ function exportGraduationReport(user) {
                   v>=min[type] && (max[type]===undefined || v<=max[type]) &&
                   (type!=='IELTS' || Number.isInteger(v*2));
           }
-          return scoreOk && checkCertificateDate(custom.certDate).valid;
+          return scoreOk && checkCertificateDate(custom.certDate, custom.certSubmitDate).valid;
       }
       return custom?.mode==='done'?true:custom?.mode==='pending'?false:auto;
     };
@@ -4493,7 +4500,7 @@ if (window.location.pathname.includes('graduation.html')) {
 
                 if (custom) {
                     if (cond.id === 'foreign_lang' && custom.certType) {
-                        const dateStatus = checkCertificateDate(custom.certDate);
+                        const dateStatus = checkCertificateDate(custom.certDate, custom.certSubmitDate);
                         isDone = evaluateCertificate(custom.certType,custom.certScore).passed && dateStatus.valid;
                         if (!dateStatus.valid) noteText = dateStatus.message;
                     }
@@ -4501,7 +4508,7 @@ if (window.location.pathname.includes('graduation.html')) {
                     else if (custom.mode === 'pending') isDone = false;
 
                     if (custom.note !== undefined && custom.note !== null &&
-                        !(cond.id === 'foreign_lang' && custom.certType && !checkCertificateDate(custom.certDate).valid)) {
+                        !(cond.id === 'foreign_lang' && custom.certType && !checkCertificateDate(custom.certDate, custom.certSubmitDate).valid)) {
                         noteText = custom.note;
                     }
                 }
@@ -4586,6 +4593,7 @@ if (window.location.pathname.includes('graduation.html')) {
                 const typeEl = document.getElementById('cert-type');
                 const scoreEl = document.getElementById('cert-score');
                 const dateEl = document.getElementById('cert-date');
+                const submitEl = document.getElementById('cert-submit-date');
 
                 if (custom && custom.certType) {
                     typeEl.value = custom.certType;
@@ -4594,12 +4602,14 @@ if (window.location.pathname.includes('graduation.html')) {
                     document.getElementById('cert-toeic-listening').value = toeicParts ? toeicParts[1] : '';
                     document.getElementById('cert-toeic-speaking').value = toeicParts ? toeicParts[2] : '';
                     dateEl.value = custom.certDate || '';
+                    submitEl.value = custom.certSubmitDate || '';
                 } else {
                     typeEl.selectedIndex = 0;
                     scoreEl.value = '';
                     document.getElementById('cert-toeic-listening').value = '';
                     document.getElementById('cert-toeic-speaking').value = '';
                     dateEl.value = '';
+                    submitEl.value = '';
                 }
 
                 const resultEl = document.getElementById('cert-check-result');
@@ -4707,7 +4717,7 @@ if (window.location.pathname.includes('graduation.html')) {
                     const scoreRaw = getCertificateScoreInput();
                     const resultEl = document.getElementById('cert-check-result');
                     const scoreResult = evaluateCertificate(type, scoreRaw);
-                    const dateResult = checkCertificateDate(document.getElementById('cert-date').value);
+                    const dateResult = checkCertificateDate(document.getElementById('cert-date').value, document.getElementById('cert-submit-date').value);
                     const outcome = scoreResult.valid && scoreResult.passed ? dateResult : scoreResult;
                     resultEl.style.color = scoreResult.valid && scoreResult.passed && dateResult.valid ? '#059669' : '#ef4444';
                     resultEl.textContent = type ? outcome.message : 'Vui lòng chọn chứng chỉ!';
@@ -4722,6 +4732,7 @@ if (window.location.pathname.includes('graduation.html')) {
                     const type = document.getElementById('cert-type').value;
                     const score = getCertificateScoreInput();
                     const date = document.getElementById('cert-date').value.trim();
+                    const submitDate = document.getElementById('cert-submit-date').value.trim();
 
                     if (!type) {
                         alert('Vui lòng chọn chứng chỉ!');
@@ -4734,20 +4745,21 @@ if (window.location.pathname.includes('graduation.html')) {
                         document.getElementById(type === 'TOEIC 4 kỹ năng' ? 'cert-toeic-listening' : 'cert-score').focus();
                         return;
                     }
-                    const dateResult = checkCertificateDate(date);
+                    const dateResult = checkCertificateDate(date, submitDate);
                     if (!dateResult.valid) {
                         const resultEl = document.getElementById('cert-check-result');
                         if (resultEl) { resultEl.style.color = '#ef4444'; resultEl.textContent = dateResult.message; }
-                        document.getElementById('cert-date').focus();
+                        document.getElementById('cert-submit-date').focus();
                         return;
                     }
-                    const noteText = `${type} ${score} (Cấp: ${date}; hết hạn: ${dateResult.expiresText})`;
+                    const noteText = `${type} ${score} (Cấp: ${date}; nộp: ${submitDate}; hạn cuối: ${dateResult.expiresText})`;
                     currentUser.stats.graduationOverrides[cond.id] = {
                         mode: 'done',
                         note: noteText,
                         certType: type,
                         certScore: score,
-                        certDate: date
+                        certDate: date,
+                        certSubmitDate: submitDate
                     };
 
                     saveGradUser();
