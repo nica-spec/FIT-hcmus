@@ -2564,6 +2564,7 @@ if (window.location.pathname.includes('grades.html')) {
             manualCodeInput.value = course.code;
             manualNamePreview.textContent = course.name;
             hideManualSuggestions();
+            syncManualRepeatType();
             document.getElementById('m-cols').focus();
         }
         function searchManualCourses(query) {
@@ -2602,7 +2603,10 @@ if (window.location.pathname.includes('grades.html')) {
             }
             manualSuggestions.hidden = false;
         }
-        manualCodeInput.addEventListener('input', () => searchManualCourses(manualCodeInput.value));
+        manualCodeInput.addEventListener('input', () => {
+            searchManualCourses(manualCodeInput.value);
+            syncManualRepeatType();
+        });
         manualCodeInput.addEventListener('keydown', event => {
             if (manualSuggestions.hidden || !manualMatches.length) return;
             if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -2621,6 +2625,34 @@ if (window.location.pathname.includes('grades.html')) {
 
         let selectedSem = "1";
         let selectedType = "";
+        // Phân loại học phần dựa trên ĐIỂM ĐÃ LƯU, không dựa vào lựa chọn thủ công.
+        function expectedRepeatType(course) {
+            if (!course || !hasCourseScore(course)) return '';
+            return isPassedCourse(course) ? 'Học phần cải thiện' : 'Học phần học lại';
+        }
+        function lockTypeButtons(groupId, expectedType) {
+            document.querySelectorAll('#' + groupId + ' .pill-btn').forEach(btn => {
+                const allowed = btn.dataset.val === expectedType;
+                btn.hidden = !allowed;
+                btn.style.display = allowed ? '' : 'none';
+                btn.disabled = !allowed;
+                btn.classList.toggle('active', allowed);
+                btn.setAttribute('aria-pressed', String(allowed));
+            });
+        }
+        function findStoredCourseByCode(code) {
+            const key = String(code || '').trim().toUpperCase();
+            return (currentUser.stats.gradesList || []).find(g =>
+                String(g.code || '').trim().toUpperCase() === key
+            );
+        }
+        function syncManualRepeatType() {
+            const existing = findStoredCourseByCode(manualCodeInput.value);
+            const requiredType = expectedRepeatType(existing);
+            selectedType = requiredType;
+            lockTypeButtons('m-type-group', requiredType);
+        }
+
 
         document.getElementById('btn-add-manual').addEventListener('click', () => {
             modal.style.display = 'flex';
@@ -2636,6 +2668,7 @@ if (window.location.pathname.includes('grades.html')) {
             scoreContainer.innerHTML = '';
             document.getElementById('m-year').value = '';
             document.getElementById('m-code').value = '';
+            syncManualRepeatType();
             manualNamePreview.textContent = '';
             hideManualSuggestions();
             document.getElementById('m-cols').value = '';
@@ -2663,8 +2696,8 @@ if (window.location.pathname.includes('grades.html')) {
         });
         document.querySelectorAll('#m-type-group .pill-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                document.querySelectorAll('#m-type-group .pill-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active'); selectedType = e.target.dataset.val;
+                // Lựa chọn đã khóa dựa trên điểm cũ.
+                syncManualRepeatType();
             });
         });
 
@@ -2734,8 +2767,14 @@ if (window.location.pathname.includes('grades.html')) {
             const existingCourse = (currentUser.stats.gradesList || []).find(
                 course => String(course.code || '').trim().toUpperCase() === codeVal
             );
-            if (existingCourse && !/học lại|học cải thiện|cải thiện/i.test(selectedType)) {
-                alert(`Mã môn "${codeVal}" đã tồn tại. Hãy chọn "Học lại" hoặc "Học cải thiện" để cập nhật môn này.`);
+            const requiredType = expectedRepeatType(existingCourse);
+            if (existingCourse && !requiredType) {
+                showManualStatus('Học phần đã có trong bảng điểm nhưng chưa có điểm hợp lệ. Vui lòng sửa bản ghi hiện tại trước.');
+                return;
+            }
+            if (selectedType !== requiredType) {
+                syncManualRepeatType();
+                showManualStatus('Loại học phần được xác định tự động theo điểm đã lưu. Vui lòng kiểm tra lại.');
                 return;
             }
 
@@ -2970,9 +3009,7 @@ if (window.location.pathname.includes('grades.html')) {
                 btn.setAttribute('aria-pressed', String(active));
             });
 
-            document.querySelectorAll('#e-type-group .pill-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.val === (course.note || ''));
-            });
+            lockTypeButtons('e-type-group', expectedRepeatType(course));
 
             let existingScores = course.scoresList;
             if (!existingScores || existingScores.length === 0) {
@@ -2998,9 +3035,9 @@ if (window.location.pathname.includes('grades.html')) {
             });
         });
         document.querySelectorAll('#e-type-group .pill-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('#e-type-group .pill-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
+            btn.addEventListener('click', () => {
+                const record = currentUser.stats.gradesList[editingIndex];
+                if (record) lockTypeButtons('e-type-group', expectedRepeatType(record));
             });
         });
 
@@ -3058,11 +3095,18 @@ if (window.location.pathname.includes('grades.html')) {
                 return;
             }
 
-            const isDuplicate = currentUser.stats.gradesList.some((course, index) => course.code === updatedCode && index !== editingIndex);
-            if (isDuplicate && !/học lại|học cải thiện|cải thiện/i.test(
-                document.querySelector('#e-type-group .pill-btn.active')?.dataset.val || ''
-            )) {
-                alert(`Mã môn "${updatedCode}" đã tồn tại. Hãy chọn Học lại hoặc Học cải thiện để thay thế.`);
+            const originalCourse = currentUser.stats.gradesList[editingIndex];
+            const requiredEditType = expectedRepeatType(originalCourse);
+            if (!requiredEditType) {
+                alert('Học phần chưa có điểm hợp lệ để phân loại học lại/cải thiện.');
+                return;
+            }
+            // Không cho đổi mã sang một học phần đã có, tránh ghi đè dữ liệu không chủ ý.
+            const isDuplicate = currentUser.stats.gradesList.some((course, index) =>
+                String(course.code || '').trim().toUpperCase() === updatedCode && index !== editingIndex
+            );
+            if (isDuplicate) {
+                alert('Mã môn này đã tồn tại. Hãy mở chính học phần đó để chỉnh sửa.');
                 return;
             }
 
@@ -3094,7 +3138,8 @@ if (window.location.pathname.includes('grades.html')) {
             finalScore = Math.min(10, finalScore + bonus.amount);
 
             const activeSem = document.querySelector('#e-sem-group .pill-btn.active').dataset.val;
-            const activeType = document.querySelector('#e-type-group .pill-btn.active').dataset.val;
+            const activeType = requiredEditType;
+            lockTypeButtons('e-type-group', activeType);
             
             currentUser.stats.gradesList[editingIndex].year = document.getElementById('e-year').value;
             currentUser.stats.gradesList[editingIndex].sem = activeSem;
