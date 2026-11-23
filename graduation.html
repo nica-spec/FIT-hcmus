@@ -158,9 +158,11 @@
                 </div>
 
                 <div class="language-row">
-                    <label class="language-label">Ngày cấp:</label>
-                    <!-- Bỏ value="21/04/2026", đặt placeholder có chữ VD: cho tương đương -->
-                    <input type="text" id="cert-date" class="language-input" value="" placeholder="VD: 21/04/2026">
+                    <label class="language-label" for="cert-date">Ngày cấp (bắt buộc):</label>
+                    <input type="text" id="cert-date" class="language-input" value="" placeholder="dd/mm/yyyy" required inputmode="numeric" maxlength="10" aria-describedby="cert-validity-note">
+                </div>
+                <p id="cert-validity-note" style="font-size:12px;color:#64748b;margin:4px 0 12px;">Chứng chỉ có hiệu lực tối đa 2 năm kể từ ngày cấp. Ngày xét được tính theo ngày hiện tại; quá hạn sẽ không được công nhận.</p>
+                <div style="display:none">
                 </div>
 
                 <div class="language-check-btn-container">
