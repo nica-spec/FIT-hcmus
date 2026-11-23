@@ -1,3 +1,45 @@
+// Menu ẩn/hiện cho màn hình <=768px, dùng chung cho tất cả trang ứng dụng.
+(function setupResponsiveNavigation() {
+    function init() {
+        const nav = document.querySelector('.navbar');
+        const sidebar = document.querySelector('.dashboard-wrapper > .sidebar');
+        if (!nav || !sidebar || document.getElementById('mobile-nav-toggle')) return;
+        sidebar.id = sidebar.id || 'app-mobile-sidebar';
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.id = 'mobile-nav-toggle';
+        toggle.className = 'mobile-nav-toggle';
+        toggle.setAttribute('aria-controls', sidebar.id);
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Mở menu điều hướng');
+        toggle.innerHTML = '<span aria-hidden="true">☰</span><span class="mobile-nav-toggle-label">Menu</span>';
+        nav.appendChild(toggle);
+        const setOpen = open => {
+            sidebar.classList.toggle('mobile-nav-open', open);
+            toggle.setAttribute('aria-expanded', String(open));
+            toggle.setAttribute('aria-label', open ? 'Đóng menu điều hướng' : 'Mở menu điều hướng');
+            toggle.querySelector('[aria-hidden]').textContent = open ? '✕' : '☰';
+        };
+        toggle.addEventListener('click', () => setOpen(!sidebar.classList.contains('mobile-nav-open')));
+        sidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setOpen(false)));
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && sidebar.classList.contains('mobile-nav-open')) {
+                setOpen(false);
+                toggle.focus();
+            }
+        });
+        document.addEventListener('click', event => {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('mobile-nav-open') &&
+                !sidebar.contains(event.target) && !toggle.contains(event.target)) setOpen(false);
+        });
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) setOpen(false);
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();
+
 // CTĐT ngành Khoa học máy tính, khóa tuyển 2025; căn cứ Quyết định 2818/QĐ-KHTN (19/09/2025).
 // Các danh mục tự chọn là PHƯƠNG ÁN lựa chọn, không có nghĩa sinh viên phải học tất cả.
 // Chuẩn bị ứng dụng để hoạt động ngoại tuyến sau lần truy cập có Internet.
