@@ -4386,7 +4386,8 @@ if (window.location.pathname.includes('graduation.html')) {
                 let noteText = autoData[cond.id].note;
 
                 if (custom) {
-                    if (custom.mode === 'done') isDone = true;
+                    if (cond.id === 'foreign_lang' && custom.certType) isDone = evaluateCertificate(custom.certType,custom.certScore).passed;
+                    else if (custom.mode === 'done') isDone = true;
                     else if (custom.mode === 'pending') isDone = false;
 
                     if (custom.note !== undefined && custom.note !== null) {
@@ -4433,19 +4434,12 @@ if (window.location.pathname.includes('graduation.html')) {
 
         // --- XỬ LÝ MODAL & ĐỒNG BỘ PLACEHOLDER ---
         const scorePlaceholders = {
-            'IELTS': 'VD: 4.5, 6.0, 6.5...',
-            'VSTEP': 'VD: B1, B2...',
-            'TOEFL (iBT)': 'VD: 45, 61, 79...',
-            'TOEFL (ITP)': 'VD: 450, 500...',
-            'TOEFL (ITP) + TOEIC': 'VD: TOEFL 500, TOEIC 240',
-            'TOEFL (CBT)': 'VD: 133...',
-            'TOEIC 4 kỹ năng': 'VD: N-Đ 600, N-V 240',
-            'PET-CEFR': 'VD: B1...',
-            'FCE': 'VD: B2 hoặc 160...',
-            'BEC': 'VD: B1, B2...',
-            'BULATS': 'VD: 40, 60...'
+            'VNU-EPT':'VD: 176',
+            'IELTS':'VD: 4.0',
+            'TOEFL (iBT)':'VD: 32',
+            'TOEIC 4 kỹ năng':'VD: 316, 181 (Nghe-Đọc, Nói-Viết)',
+            'PET':'VD: 80'
         };
-
         function syncCertPlaceholder() {
             const typeEl = document.getElementById('cert-type');
             const scoreEl = document.getElementById('cert-score');
@@ -4544,60 +4538,31 @@ if (window.location.pathname.includes('graduation.html')) {
                 });
             }
 
-            // Áp dụng cùng một quy tắc cho cả nút Kiểm tra và Lưu thay đổi.
-            // Có chứng chỉ nhập bậc B1/B2 hoặc nhiều điểm, nên không ép tất cả về input type=number.
-            function validateCertificateScore(type, rawScore) {
-                const score = String(rawScore || '').trim();
-                if (!score) return 'Vui lòng nhập điểm hoặc bậc chứng chỉ!';
-                // Chặn điểm âm kể cả trong chuỗi nhiều điểm: "TOEFL -500, TOEIC 240".
-                if (/-\s*\d/.test(score)) return 'Điểm chứng chỉ không được là số âm!';
-                const numericTypes = new Set(['IELTS', 'TOEFL (iBT)', 'TOEFL (ITP)', 'TOEFL (CBT)', 'BULATS']);
-                if (numericTypes.has(type) && !/^\d+(?:[.,]\d+)?$/.test(score)) {
-                    return 'Chứng chỉ này yêu cầu điểm số hợp lệ, không được nhập chữ hoặc ký tự khác.';
+            function evaluateCertificate(type, rawScore) {
+                const value = String(rawScore ?? '').trim();
+                if (!value) return { valid:false, passed:false, message:'Vui lòng nhập điểm chứng chỉ!' };
+                if (/-\s*\d/.test(value)) return { valid:false, passed:false, message:'Điểm chứng chỉ không được là số âm!' };
+                if (type === 'TOEIC 4 kỹ năng') {
+                    const match = value.match(/^(\d+)\s*[,;\/]\s*(\d+)$/);
+                    if (!match) return { valid:false, passed:false, message:'Nhập TOEIC theo dạng: 316, 181 (Nghe-Đọc, Nói-Viết).' };
+                    const passed = Number(match[1]) >= 316 && Number(match[2]) >= 181;
+                    return { valid:true, passed, message:passed ? 'Đạt chuẩn B1.2' : 'Chưa đạt: yêu cầu Nghe-Đọc 316 và Nói-Viết 181.' };
                 }
-                return '';
+                const limits = {'VNU-EPT':176,'IELTS':4,'TOEFL (iBT)':32,'PET':80};
+                if (!Object.prototype.hasOwnProperty.call(limits,type)) return { valid:false, passed:false, message:'Chứng chỉ chưa thuộc danh sách Điều 6.' };
+                if (!/^\d+(?:[.,]\d+)?$/.test(value)) return { valid:false, passed:false, message:'Điểm phải là số hợp lệ không âm.' };
+                const passed = Number(value.replace(',','.')) >= limits[type];
+                return { valid:true, passed, message:passed ? 'Đạt chuẩn B1.2 ('+type+' ≥ '+limits[type]+')' : 'Chưa đạt chuẩn B1.2 ('+type+' ≥ '+limits[type]+')' };
             }
-
             const btnCheckCert = document.getElementById('btn-check-cert');
             if (btnCheckCert) {
                 btnCheckCert.addEventListener('click', () => {
                     const type = document.getElementById('cert-type').value;
                     const scoreRaw = document.getElementById('cert-score').value.trim();
-                    const scoreNum = Number(scoreRaw.replace(',', '.'));
                     const resultEl = document.getElementById('cert-check-result');
-
-                    const minMass = {
-                        'IELTS': 4.5,
-                        'TOEFL (iBT)': 45,
-                        'TOEFL (ITP)': 450,
-                        'TOEFL (CBT)': 133,
-                        'BULATS': 40
-                    };
-
-                    if (!type) {
-                        resultEl.style.color = '#ef4444';
-                        resultEl.textContent = 'Vui lòng chọn loại chứng chỉ!';
-                        return;
-                    }
-                    const scoreError = validateCertificateScore(type, scoreRaw);
-                    if (scoreError) {
-                        resultEl.style.color = '#ef4444';
-                        resultEl.textContent = scoreError;
-                        return;
-                    }
-
-                    if (minMass[type] !== undefined && Number.isFinite(scoreNum)) {
-                        if (scoreNum >= minMass[type]) {
-                            resultEl.style.color = '#059669';
-                            resultEl.textContent = `Đạt chuẩn tối thiểu CT Đại trà (${type} ≥ ${minMass[type]})`;
-                        } else {
-                            resultEl.style.color = '#ef4444';
-                            resultEl.textContent = `Chưa đạt chuẩn tối thiểu CT Đại trà (${type} ≥ ${minMass[type]})`;
-                        }
-                    } else {
-                        resultEl.style.color = '#1a498b';
-                        resultEl.textContent = 'Vui lòng đối chiếu mức điểm chi tiết trong bảng quy định bên dưới.';
-                    }
+                    const outcome = evaluateCertificate(type, scoreRaw);
+                    resultEl.style.color = outcome.valid && outcome.passed ? '#059669' : '#ef4444';
+                    resultEl.textContent = type ? outcome.message : 'Vui lòng chọn chứng chỉ!';
                 });
             }
 
@@ -4614,18 +4579,13 @@ if (window.location.pathname.includes('graduation.html')) {
                         alert('Vui lòng chọn chứng chỉ!');
                         return;
                     }
-                    const scoreError = validateCertificateScore(type, score);
-                    if (scoreError) {
+                    const outcome = evaluateCertificate(type, score);
+                    if (!outcome.valid || !outcome.passed) {
                         const resultEl = document.getElementById('cert-check-result');
-                        if (resultEl) {
-                            resultEl.style.color = '#ef4444';
-                            resultEl.textContent = scoreError;
-                        }
-                        alert(scoreError);
+                        if (resultEl) { resultEl.style.color = '#ef4444'; resultEl.textContent = outcome.message; }
                         document.getElementById('cert-score').focus();
                         return;
                     }
-
                     const noteText = date ? `${type} ${score} (Cấp: ${date})` : `${type} ${score}`;
                     currentUser.stats.graduationOverrides[cond.id] = {
                         mode: 'done',
