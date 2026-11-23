@@ -3097,10 +3097,6 @@ if (window.location.pathname.includes('grades.html')) {
 
             const originalCourse = currentUser.stats.gradesList[editingIndex];
             const requiredEditType = expectedRepeatType(originalCourse);
-            if (!requiredEditType) {
-                alert('Học phần chưa có điểm hợp lệ để phân loại học lại/cải thiện.');
-                return;
-            }
             // Không cho đổi mã sang một học phần đã có, tránh ghi đè dữ liệu không chủ ý.
             const isDuplicate = currentUser.stats.gradesList.some((course, index) =>
                 String(course.code || '').trim().toUpperCase() === updatedCode && index !== editingIndex
