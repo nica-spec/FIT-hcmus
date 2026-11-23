@@ -3083,3 +3083,157 @@ select.gray-pill, input.gray-pill {
         box-sizing: border-box;
     }
 }
+
+/* ===== Mobile ≤768px: menu thu gọn, lưới 1 cột, chỉ bảng cuộn ngang ===== */
+.mobile-nav-toggle { display: none; }
+@media (max-width: 768px) {
+    html { width: 100%; max-width: 100%; }
+    body { width: 100%; max-width: 100%; overflow-x: clip; }
+    .navbar {
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px 12px;
+        padding: 10px 12px !important;
+    }
+    .navbar .nav-brand {
+        min-width: 0;
+        width: auto;
+        max-width: 100%;
+        grid-column: 1;
+        grid-row: 1;
+    }
+    .navbar .logo-hcmus { flex: 0 0 auto; padding-right: 9px; }
+    .navbar .logo-text { min-width: 0; padding-left: 9px; }
+    .navbar .brand-title { font-size: clamp(14px, 4.5vw, 18px) !important; overflow-wrap: anywhere; }
+    .navbar .brand-subtitle { font-size: 10px !important; overflow-wrap: anywhere; }
+    .navbar .user-profile {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        min-width: 0;
+        width: 100%;
+        max-width: 100% !important;
+        text-align: left;
+        overflow-wrap: anywhere;
+    }
+    .mobile-nav-toggle {
+        display: inline-flex;
+        grid-column: 2;
+        grid-row: 1;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 44px;
+        padding: 9px 12px;
+        background: #fff;
+        color: #0c3875;
+        border: 0;
+        border-radius: 9px;
+        cursor: pointer;
+        font: 700 13px 'Montserrat', sans-serif;
+    }
+    .mobile-nav-toggle:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
+    .dashboard-wrapper {
+        display: flex;
+        flex-direction: column !important;
+        min-width: 0;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: clip;
+    }
+    .dashboard-wrapper > .sidebar {
+        display: none !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        padding: 8px !important;
+        gap: 4px;
+    }
+    .dashboard-wrapper > .sidebar.mobile-nav-open { display: flex !important; }
+    .sidebar .sidebar-item {
+        width: 100%;
+        min-height: 44px;
+        padding: 11px 14px !important;
+        white-space: normal !important;
+        flex: 0 0 auto;
+        border-radius: 8px !important;
+    }
+    .dashboard-wrapper > main,
+    .dashboard-content, .program-content, .module-detail-content,
+    .settings-main-container, .goals-main-container, .graduation-main-container {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+    .dashboard-content, .program-content, .module-detail-content {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+        padding: 14px 10px !important;
+    }
+    .dashboard-content > *, .program-content > *, .module-detail-content > *,
+    .program-main, .program-sidebar-widgets, .overview-section, .chart-section,
+    .grades-card, .detail-card, .program-card, .goals-analysis-row,
+    .goal-form-card, .goal-result-card, .whatif-card, .settings-card,
+    .graduation-main-container, .grad-container {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+    .goals-analysis-row, .goals-top-grid, .goals-metrics-row,
+    .charts-section, .chart-flex, .user-info-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    .module-item, .card-header-row, .detail-header, .detail-title-box {
+        min-width: 0;
+        max-width: 100%;
+    }
+    .module-info { min-width: 0 !important; overflow-wrap: anywhere; }
+    .table-wrapper, .whatif-table-wrapper, .grad-table-wrap, .cert-info-table-container {
+        display: block;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
+    .table-wrapper .course-table, .whatif-table-wrapper table,
+    .grad-table-wrap table, .cert-info-table-container table {
+        width: max-content;
+        min-width: 100%;
+    }
+    .table-wrapper .course-table th, .table-wrapper .course-table td { white-space: nowrap; }
+    .table-wrapper .course-table td:nth-child(3) { white-space: normal; min-width: 160px; }
+    .grades-toolbar, .toolbar-left, .toolbar-right, .control-row {
+        min-width: 0;
+        max-width: 100%;
+        flex-wrap: wrap;
+    }
+    .modal-box, .edit-modal-box, .language-modal-box, .confirm-modal-box,
+    .user-edit-box {
+        max-width: calc(100vw - 20px) !important;
+        width: calc(100vw - 20px) !important;
+        max-height: 90dvh !important;
+        overflow-y: auto !important;
+    }
+    .language-action-right { max-width: 100%; }
+}
+@media (max-width: 375px) {
+    .navbar { padding: 8px 9px !important; gap: 6px !important; }
+    .mobile-nav-toggle { padding: 8px 10px; }
+    .nav-brand .logo-us { font-size: 22px !important; }
+    .nav-brand .logo-hcm { font-size: 12px !important; }
+    .nav-brand .brand-title { font-size: 15px !important; }
+    .dashboard-content, .program-content, .module-detail-content {
+        padding: 10px 8px !important;
+    }
+    .stats-row { width: 100%; flex-wrap: wrap; }
+    .stat-card { min-width: 0 !important; flex: 1 1 125px; }
+}
