@@ -1110,6 +1110,13 @@ function getSelectedMajorCourses() {
 
 const CTDT_REQUIREMENTS = Object.freeze({general:56,politics:14,skills:2,math:36,it:4,foundation:38,major:34,graduation:10,total:138});
 const CTDT_COURSE_INDEX = Object.fromEntries(Object.entries(CTDT_KHMT_2025).flatMap(([group,items])=>items.map(c=>[c.code,{...c,group}])));
+for (const spec of Object.values(KHMT_MAJOR_LISTS)) {
+    for (const code of (spec.core + ' ' + spec.elect).split(' ').filter(Boolean)) {
+        if (!CTDT_COURSE_INDEX[code]) {
+            CTDT_COURSE_INDEX[code] = {code, name:KHMT_MAJOR_NAMES_BY_CODE[code] || code, tc:4, group:'major'};
+        }
+    }
+}
 function getCurriculumCredits(grades,group){
  const passed = getLatestCourses(grades).filter(g=>isPassedCourse(g));
  const byCode = new Map(passed.map(g=>[String(g.code).trim().toUpperCase(),g]));
@@ -4173,6 +4180,11 @@ if (window.location.pathname.includes('module-major.html')) {
         const courseData = getSelectedMajorCourses().map((c,i)=>({...c,stt:String(i+1)}));
         const majorTitle = document.getElementById('selected-major-title');
         if (majorTitle) majorTitle.textContent = selectedMajor || 'Chưa chọn chuyên ngành';
+        const sourceLabel = document.getElementById('major-source-label');
+        if (sourceLabel) {
+            const section = Math.max(1,KHMT_MAJOR_NAMES.indexOf(selectedMajor)+1);
+            sourceLabel.textContent = selectedMajor ? 'Nguồn: CTĐT KHMT K2025, mục 7.2.2.' + section + ' (chuyên ngành ' + selectedMajor + ').' : 'Nguồn: CTĐT KHMT K2025, mục 7.2.2.';
+        }
         const majorGuide = document.getElementById('selected-major-notice');
         if (majorGuide) majorGuide.hidden = !!selectedMajor;
 
