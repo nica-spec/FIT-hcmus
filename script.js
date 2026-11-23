@@ -4544,12 +4544,26 @@ if (window.location.pathname.includes('graduation.html')) {
                 });
             }
 
+            // Áp dụng cùng một quy tắc cho cả nút Kiểm tra và Lưu thay đổi.
+            // Có chứng chỉ nhập bậc B1/B2 hoặc nhiều điểm, nên không ép tất cả về input type=number.
+            function validateCertificateScore(type, rawScore) {
+                const score = String(rawScore || '').trim();
+                if (!score) return 'Vui lòng nhập điểm hoặc bậc chứng chỉ!';
+                // Chặn điểm âm kể cả trong chuỗi nhiều điểm: "TOEFL -500, TOEIC 240".
+                if (/-\s*\d/.test(score)) return 'Điểm chứng chỉ không được là số âm!';
+                const numericTypes = new Set(['IELTS', 'TOEFL (iBT)', 'TOEFL (ITP)', 'TOEFL (CBT)', 'BULATS']);
+                if (numericTypes.has(type) && !/^\d+(?:[.,]\d+)?$/.test(score)) {
+                    return 'Chứng chỉ này yêu cầu điểm số hợp lệ, không được nhập chữ hoặc ký tự khác.';
+                }
+                return '';
+            }
+
             const btnCheckCert = document.getElementById('btn-check-cert');
             if (btnCheckCert) {
                 btnCheckCert.addEventListener('click', () => {
                     const type = document.getElementById('cert-type').value;
                     const scoreRaw = document.getElementById('cert-score').value.trim();
-                    const scoreNum = parseFloat(scoreRaw);
+                    const scoreNum = Number(scoreRaw.replace(',', '.'));
                     const resultEl = document.getElementById('cert-check-result');
 
                     const minMass = {
@@ -4565,13 +4579,14 @@ if (window.location.pathname.includes('graduation.html')) {
                         resultEl.textContent = 'Vui lòng chọn loại chứng chỉ!';
                         return;
                     }
-                    if (!scoreRaw) {
+                    const scoreError = validateCertificateScore(type, scoreRaw);
+                    if (scoreError) {
                         resultEl.style.color = '#ef4444';
-                        resultEl.textContent = 'Vui lòng nhập điểm hoặc bậc chứng chỉ!';
+                        resultEl.textContent = scoreError;
                         return;
                     }
 
-                    if (minMass[type] !== undefined && !isNaN(scoreNum)) {
+                    if (minMass[type] !== undefined && Number.isFinite(scoreNum)) {
                         if (scoreNum >= minMass[type]) {
                             resultEl.style.color = '#059669';
                             resultEl.textContent = `Đạt chuẩn tối thiểu CT Đại trà (${type} ≥ ${minMass[type]})`;
@@ -4595,8 +4610,19 @@ if (window.location.pathname.includes('graduation.html')) {
                     const score = document.getElementById('cert-score').value.trim();
                     const date = document.getElementById('cert-date').value.trim();
 
-                    if (!type || !score) {
-                        alert('Vui lòng chọn chứng chỉ và nhập điểm!');
+                    if (!type) {
+                        alert('Vui lòng chọn chứng chỉ!');
+                        return;
+                    }
+                    const scoreError = validateCertificateScore(type, score);
+                    if (scoreError) {
+                        const resultEl = document.getElementById('cert-check-result');
+                        if (resultEl) {
+                            resultEl.style.color = '#ef4444';
+                            resultEl.textContent = scoreError;
+                        }
+                        alert(scoreError);
+                        document.getElementById('cert-score').focus();
                         return;
                     }
 
