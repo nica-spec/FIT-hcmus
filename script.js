@@ -4434,18 +4434,30 @@ if (window.location.pathname.includes('graduation.html')) {
 
         // --- XỬ LÝ MODAL & ĐỒNG BỘ PLACEHOLDER ---
         const scorePlaceholders = {
-            'VNU-EPT':'VD: 176',
+            'VNU-EPT':'VD: 176 (tối đa 400)',
             'IELTS':'VD: 4.0 (tối đa 9.0)',
             'VSTEP':'VD: 5.0 (tối đa 10.0)',
             'TOEFL (iBT)':'VD: 32',
             'TOEIC 4 kỹ năng':'VD: 316, 181 (tối đa 990, 400)',
-            'PET':'VD: 80'
+            'PET':'VD: 80 (tối đa 170)'
         };
         function syncCertPlaceholder() {
             const typeEl = document.getElementById('cert-type');
             const scoreEl = document.getElementById('cert-score');
             if (!typeEl || !scoreEl) return;
-            scoreEl.placeholder = scorePlaceholders[typeEl.value] || 'VD: 6.5';
+            const toeic = typeEl.value === 'TOEIC 4 kỹ năng';
+            document.getElementById('cert-single-score-row').style.display = toeic ? 'none' : '';
+            document.getElementById('cert-toeic-listening-row').style.display = toeic ? '' : 'none';
+            document.getElementById('cert-toeic-speaking-row').style.display = toeic ? '' : 'none';
+            scoreEl.placeholder = scorePlaceholders[typeEl.value] || 'VD: 4.0';
+        }
+        function getCertificateScoreInput() {
+            if (document.getElementById('cert-type').value !== 'TOEIC 4 kỹ năng') {
+                return document.getElementById('cert-score').value.trim();
+            }
+            const listening = document.getElementById('cert-toeic-listening').value.trim();
+            const speaking = document.getElementById('cert-toeic-speaking').value.trim();
+            return listening && speaking ? listening + ', ' + speaking : '';
         }
 
         let editingCondIndex = -1;
@@ -4467,10 +4479,15 @@ if (window.location.pathname.includes('graduation.html')) {
                 if (custom && custom.certType) {
                     typeEl.value = custom.certType;
                     scoreEl.value = custom.certScore || '';
+                    const toeicParts = String(custom.certScore || '').match(/^\\s*(\\d+)\\s*[,;\\/]\\s*(\\d+)\\s*$/);
+                    document.getElementById('cert-toeic-listening').value = toeicParts ? toeicParts[1] : '';
+                    document.getElementById('cert-toeic-speaking').value = toeicParts ? toeicParts[2] : '';
                     dateEl.value = custom.certDate || '';
                 } else {
                     typeEl.selectedIndex = 0;
                     scoreEl.value = '';
+                    document.getElementById('cert-toeic-listening').value = '';
+                    document.getElementById('cert-toeic-speaking').value = '';
                     dateEl.value = '';
                 }
 
@@ -4526,6 +4543,8 @@ if (window.location.pathname.includes('graduation.html')) {
                 certTypeSelect.addEventListener('change', () => {
                     syncCertPlaceholder();
                     document.getElementById('cert-score').value = '';
+                    document.getElementById('cert-toeic-listening').value = '';
+                    document.getElementById('cert-toeic-speaking').value = '';
                     const resultEl = document.getElementById('cert-check-result');
                     if (resultEl) resultEl.textContent = '';
                 });
@@ -4561,6 +4580,8 @@ if (window.location.pathname.includes('graduation.html')) {
                 }
                 const limits = {'VNU-EPT':176,'IELTS':4,'TOEFL (iBT)':32,'PET':80};
                 if (!Object.prototype.hasOwnProperty.call(limits,type)) return invalid('Chứng chỉ chưa thuộc danh sách Điều 6.');
+                if (type === 'VNU-EPT' && score > 400) return invalid('VNU-EPT có thang điểm tối đa 400.');
+                if (type === 'PET' && score > 170) return invalid('PET có thang điểm tối đa 170.');
                 if (type === 'IELTS') {
                     if (score > 9) return invalid('IELTS chỉ có thang điểm 0–9.0.');
                     if (Math.abs(score * 2 - Math.round(score * 2)) > 1e-8) return invalid('IELTS cần nhập điểm theo bước 0.5.');
@@ -4572,7 +4593,7 @@ if (window.location.pathname.includes('graduation.html')) {
             if (btnCheckCert) {
                 btnCheckCert.addEventListener('click', () => {
                     const type = document.getElementById('cert-type').value;
-                    const scoreRaw = document.getElementById('cert-score').value.trim();
+                    const scoreRaw = getCertificateScoreInput();
                     const resultEl = document.getElementById('cert-check-result');
                     const outcome = evaluateCertificate(type, scoreRaw);
                     resultEl.style.color = outcome.valid && outcome.passed ? '#059669' : '#ef4444';
@@ -4586,7 +4607,7 @@ if (window.location.pathname.includes('graduation.html')) {
                     if (editingCondIndex === -1) return;
                     const cond = conditionDefinitions[editingCondIndex];
                     const type = document.getElementById('cert-type').value;
-                    const score = document.getElementById('cert-score').value.trim();
+                    const score = getCertificateScoreInput();
                     const date = document.getElementById('cert-date').value.trim();
 
                     if (!type) {
@@ -4597,7 +4618,7 @@ if (window.location.pathname.includes('graduation.html')) {
                     if (!outcome.valid || !outcome.passed) {
                         const resultEl = document.getElementById('cert-check-result');
                         if (resultEl) { resultEl.style.color = '#ef4444'; resultEl.textContent = outcome.message; }
-                        document.getElementById('cert-score').focus();
+                        document.getElementById(type === 'TOEIC 4 kỹ năng' ? 'cert-toeic-listening' : 'cert-score').focus();
                         return;
                     }
                     const noteText = date ? `${type} ${score} (Cấp: ${date})` : `${type} ${score}`;
