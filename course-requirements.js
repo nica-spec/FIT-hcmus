@@ -78,6 +78,10 @@
     const notes = requirements.notes?.[code] || {};
     const dict = typeof courseDictionary !== 'undefined' ? courseDictionary : {};
     const details = prior.map(id => ({ id, ...statusFor(id), note: notes[id] || '' }));
+    const registration = typeof checkMajorRegistrationPrior === 'function'
+      ? checkMajorRegistrationPrior(code, userGrades())
+      : {allowed:true, applies:false, missing:[]};
+    const blocking = registration.applies && !registration.allowed;
     const passed = details.filter(item => item.state === 'passed').length;
     const studied = details.filter(item => item.state === 'studied').length;
     const missing = details.filter(item => item.state === 'missing');
@@ -94,8 +98,11 @@
           </li>`).join('')}
         </ul>
         ${missing.length ? `<div style="margin-top:10px;font-weight:600;color:#1d4ed8">Đề nghị học: ${missing.map(item => escapeHTML(item.id) + ' — ' + escapeHTML(dict[item.id] || 'Chưa có tên trong danh mục')).join('; ')}</div>` : ''}` : '<div>Không có học phần đề nghị học trước trong dữ liệu K2025.</div>'}
+      ${registration.applies ? `<div style="margin-top:9px;padding:9px 10px;border-radius:8px;background:${blocking?'#fef2f2':'#ecfdf5'};color:${blocking?'#991b1b':'#166534'};font-weight:700">
+        ${blocking ? 'Chưa cho thêm học phần chuyên ngành: cần học các môn ' + registration.missing.map(id=>escapeHTML(id)).join(', ') + ' trước.' : 'Đã đáp ứng điều kiện học trước do ứng dụng kiểm tra cho chuyên ngành đã chọn.'}
+      </div>` : ''}
       <small style="display:block;margin-top:8px;color:#64748b">
-        Đây là thông tin tham khảo theo bảng điểm đã nhập. Thiếu môn đề nghị học trước không đồng nghĩa bị cấm đăng ký.
+        Tài liệu K2025 dùng thuật ngữ “đề nghị học trước”, không khẳng định môn tiên quyết bắt buộc. Việc chặn thêm môn chuyên ngành khi chưa học là quy tắc riêng theo yêu cầu người dùng; các trường hợp được ghi “không bắt buộc” hoặc “có thể học song song” không bị chặn.
       </small>`;
   }
   input.addEventListener('input', render);
