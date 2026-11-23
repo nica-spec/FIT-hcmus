@@ -31,12 +31,13 @@
             <div class="user-name" id="display-fullname">Tên Sinh Viên</div>
             <div class="user-mssv" id="display-mssv">MSSV: ---------</div>
         </div>
+        <button type="button" id="mobile-nav-toggle" class="mobile-nav-toggle" aria-controls="app-mobile-sidebar" aria-expanded="false" aria-label="Mở menu điều hướng" onclick="const s=document.querySelector('.dashboard-wrapper > .sidebar');if(!s)return;const open=s.classList.toggle('mobile-nav-open');this.setAttribute('aria-expanded',String(open));this.setAttribute('aria-label',open?'Đóng menu điều hướng':'Mở menu điều hướng');this.querySelector('.menu-icon').textContent=open?'✕':'☰';"><span class="menu-icon" aria-hidden="true">☰</span><span class="mobile-nav-toggle-label">Menu</span></button>
     </header>
 
     <!-- Layout Wrapper -->
     <div class="dashboard-wrapper">
         <!-- Sidebar Navigation -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="app-mobile-sidebar">
             <a href="dashboard.html" class="sidebar-item">
                 <i class="fa-solid fa-chart-line sidebar-icon"></i><span>Dashboard</span>
             </a>
