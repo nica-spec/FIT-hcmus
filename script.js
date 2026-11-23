@@ -4648,13 +4648,43 @@ if (window.location.pathname.includes('graduation.html')) {
                 tr.innerHTML = `
                     <td class="grad-cond-name">${cond.name}</td>
                     <td>${statusBadgeHtml}</td>
-                    <td class="grad-note-cell">${noteText}</td>
+                    <td class="grad-note-cell">
+                        <span class="grad-note-desktop"></span>
+                        <div class="grad-note-mobile" aria-label="Chi tiết điều kiện"></div>
+                    </td>
                     <td>
                         <button class="btn-grad-edit" onclick="openGradEditModal(${idx})" title="Chỉnh sửa điều kiện">
                             <i class="fa-regular fa-pen-to-square"></i>
                         </button>
                     </td>
                 `;
+                const noteDesktop = tr.querySelector('.grad-note-desktop');
+                const noteMobile = tr.querySelector('.grad-note-mobile');
+                noteDesktop.textContent = noteText || 'Chưa có thông tin';
+                const addDetail = (label, value) => {
+                    if (value == null || String(value).trim() === '') return;
+                    const line = document.createElement('div');
+                    line.className = 'grad-detail-line';
+                    const caption = document.createElement('span');
+                    caption.className = 'grad-detail-label';
+                    caption.textContent = label;
+                    const detail = document.createElement('span');
+                    detail.className = 'grad-detail-value';
+                    detail.textContent = String(value);
+                    line.append(caption, detail);
+                    noteMobile.appendChild(line);
+                };
+                if (cond.id === 'foreign_lang' && custom?.certType) {
+                    addDetail('Chứng chỉ', custom.certType);
+                    addDetail('Điểm', custom.certScore);
+                    addDetail('Ngày cấp', custom.certDate);
+                    addDetail('Ngày nộp', custom.certSubmitDate);
+                    const validity = checkCertificateDate(custom.certDate, custom.certSubmitDate);
+                    if (validity.expiresText) addDetail('Hạn cuối', validity.expiresText);
+                    if (!validity.valid) addDetail('Thông báo', validity.message);
+                } else {
+                    addDetail('Số liệu / ghi chú', noteText || 'Chưa có thông tin');
+                }
                 tbody.appendChild(tr);
             });
 
