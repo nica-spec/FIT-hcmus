@@ -1385,12 +1385,58 @@ function showDashboardDetails(user) {
     modal.innerHTML=`<section class="report-modal"><button class="report-modal-close" aria-label="Đóng">×</button><h2>Chi tiết kết quả học tập</h2><p>Đã tích lũy <strong>${metrics.earnedCredits}</strong> tín chỉ (không gồm Anh văn, GDTC, GDQP-AN). GPA tích lũy (môn đạt): <strong>${metrics.passedGPA10.toFixed(2)}/10</strong>.</p><div class="report-scroll"><table class="report-table"><thead><tr><th>Mã môn</th><th>Tên môn</th><th>TC</th><th>Điểm</th><th>Kết quả</th><th>Tín chỉ tích lũy</th></tr></thead><tbody>${rows||'<tr><td colspan="6">Chưa có bảng điểm</td></tr>'}</tbody></table></div><p><a href="grades.html">Đi đến bảng điểm đầy đủ</a></p></section>`;
     modal.querySelector('.report-modal-close').onclick=()=>modal.remove();
 }
+// Chứng chỉ ngoại ngữ được công nhận tối đa 2 năm từ ngày cấp đến ngày xét.
+// So sánh theo ngày lịch địa phương, không tính số mili giây hay 730 ngày cố định.
+function checkCertificateDate(raw, evaluationDate = new Date()) {
+    const input = String(raw ?? '').trim();
+    const invalid = message => ({ valid:false, message });
+    if (!input) return invalid('Vui lòng nhập ngày cấp chứng chỉ (dd/mm/yyyy).');
+    const match = input.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!match) return invalid('Ngày cấp phải đúng định dạng dd/mm/yyyy.');
+    const day = Number(match[1]), month = Number(match[2]), year = Number(match[3]);
+    const issued = new Date(year, month - 1, day);
+    if (issued.getFullYear() !== year || issued.getMonth() !== month - 1 || issued.getDate() !== day) {
+        return invalid('Ngày cấp chứng chỉ không tồn tại.');
+    }
+    const evaluated = new Date(evaluationDate.getFullYear(), evaluationDate.getMonth(), evaluationDate.getDate());
+    if (issued > evaluated) return invalid('Ngày cấp chứng chỉ không được sau ngày xét.');
+    // Đến đúng ngày kỷ niệm 2 năm vẫn hợp lệ; sau ngày đó là hết hạn.
+    const expiry = new Date(year + 2, month - 1, day);
+    // 29/02: chọn ngày cuối tháng 2 trong năm không nhuận.
+    if (month === 2 && day === 29 && expiry.getMonth() !== 1) {
+        expiry.setDate(0);
+    }
+    const expiresText = [String(expiry.getDate()).padStart(2,'0'), String(expiry.getMonth()+1).padStart(2,'0'), expiry.getFullYear()].join('/');
+    if (evaluated > expiry) return invalid('Chứng chỉ đã quá hạn 2 năm (hạn cuối: ' + expiresText + ').');
+    return {valid:true, message:'Chứng chỉ còn hiệu lực đến hết ngày ' + expiresText + '.', expiresText};
+}
+
 function exportGraduationReport(user) {
     const grades=user.stats?.gradesList || [];
     const m=getCourseMetrics(grades), target=user.stats?.totalCredits || 138;
     const overrides=user.stats?.graduationOverrides || {};
     const passCodes=new Set(grades.filter(isPassedCourse).map(g=>String(g.code||'').trim().toUpperCase()));
-    const status=(id,auto)=>overrides[id]?.mode==='done'?true:overrides[id]?.mode==='pending'?false:auto;
+    const status=(id,auto)=>{
+      const custom=overrides[id];
+      if (id==='foreign_lang' && custom?.certType) {
+          const scores=String(custom.certScore ?? '').trim();
+          const type=custom.certType;
+          let scoreOk=false;
+          if (type==='TOEIC 4 kỹ năng') {
+              const m=scores.match(/^(\d+)\s*[,;\/]\s*(\d+)$/);
+              scoreOk=!!m && Number(m[1])>=316 && Number(m[1])<=990 && Number(m[2])>=181 && Number(m[2])<=400;
+          } else {
+              const min={'VNU-EPT':176,'IELTS':4,'TOEFL (iBT)':32,'PET':80};
+              const max={'VNU-EPT':400,'IELTS':9,'PET':170};
+              const v=Number(scores.replace(',','.'));
+              scoreOk=Object.prototype.hasOwnProperty.call(min,type) && /^\d+(?:[.,]\d+)?$/.test(scores) &&
+                  v>=min[type] && (max[type]===undefined || v<=max[type]) &&
+                  (type!=='IELTS' || Number.isInteger(v*2));
+          }
+          return scoreOk && checkCertificateDate(custom.certDate).valid;
+      }
+      return custom?.mode==='done'?true:custom?.mode==='pending'?false:auto;
+    };
     const conditions=[
       ['Chuẩn đầu ra ngoại ngữ',status('foreign_lang',passCodes.has('ADD00034'))],
       ['Hoàn thành GDQP-AN',status('gdqp',passCodes.has('BAA00030'))],
@@ -4446,11 +4492,16 @@ if (window.location.pathname.includes('graduation.html')) {
                 let noteText = autoData[cond.id].note;
 
                 if (custom) {
-                    if (cond.id === 'foreign_lang' && custom.certType) isDone = evaluateCertificate(custom.certType,custom.certScore).passed;
+                    if (cond.id === 'foreign_lang' && custom.certType) {
+                        const dateStatus = checkCertificateDate(custom.certDate);
+                        isDone = evaluateCertificate(custom.certType,custom.certScore).passed && dateStatus.valid;
+                        if (!dateStatus.valid) noteText = dateStatus.message;
+                    }
                     else if (custom.mode === 'done') isDone = true;
                     else if (custom.mode === 'pending') isDone = false;
 
-                    if (custom.note !== undefined && custom.note !== null) {
+                    if (custom.note !== undefined && custom.note !== null &&
+                        !(cond.id === 'foreign_lang' && custom.certType && !checkCertificateDate(custom.certDate).valid)) {
                         noteText = custom.note;
                     }
                 }
@@ -4655,7 +4706,9 @@ if (window.location.pathname.includes('graduation.html')) {
                     const type = document.getElementById('cert-type').value;
                     const scoreRaw = getCertificateScoreInput();
                     const resultEl = document.getElementById('cert-check-result');
-                    const outcome = evaluateCertificate(type, scoreRaw);
+                    const scoreResult = evaluateCertificate(type, scoreRaw);
+                    const dateResult = checkCertificateDate(document.getElementById('cert-date').value);
+                    const outcome = scoreResult.valid && scoreResult.passed ? dateResult : scoreResult;
                     resultEl.style.color = outcome.valid && outcome.passed ? '#059669' : '#ef4444';
                     resultEl.textContent = type ? outcome.message : 'Vui lòng chọn chứng chỉ!';
                 });
@@ -4681,7 +4734,14 @@ if (window.location.pathname.includes('graduation.html')) {
                         document.getElementById(type === 'TOEIC 4 kỹ năng' ? 'cert-toeic-listening' : 'cert-score').focus();
                         return;
                     }
-                    const noteText = date ? `${type} ${score} (Cấp: ${date})` : `${type} ${score}`;
+                    const dateResult = checkCertificateDate(date);
+                    if (!dateResult.valid) {
+                        const resultEl = document.getElementById('cert-check-result');
+                        if (resultEl) { resultEl.style.color = '#ef4444'; resultEl.textContent = dateResult.message; }
+                        document.getElementById('cert-date').focus();
+                        return;
+                    }
+                    const noteText = `${type} ${score} (Cấp: ${date}; hết hạn: ${dateResult.expiresText})`;
                     currentUser.stats.graduationOverrides[cond.id] = {
                         mode: 'done',
                         note: noteText,
