@@ -2271,6 +2271,133 @@ if (window.location.pathname.includes('grades.html')) {
     if (!currentUser) {
         alert('Vui lòng đăng nhập!'); window.location.href = 'index.html';
     } else {
+
+        // Mobile cards: dùng chính dữ liệu đã lọc của bảng; không chỉnh sửa bảng điểm/GPA.
+        function renderMobileGradeCards(filteredGrades, allGrades, storedGrades) {
+            const container = document.getElementById('mobile-grade-cards');
+            const summary = document.getElementById('mobile-grades-summary');
+            if (!container || !summary) return;
+            container.replaceChildren();
+            summary.replaceChildren();
+            const metrics = getCourseMetrics(allGrades);
+            const passed = allGrades.filter(isPassedCourse).length;
+            const failed = allGrades.filter(isFailedCourse).length;
+            const stats = [
+                ['GPA bảng điểm', metrics.attemptedCredits ? metrics.gpa10.toFixed(2) : '—'],
+                ['Tín chỉ tích lũy', String(metrics.earnedCredits)],
+                ['Môn đạt', String(passed)],
+                ['Môn chưa đạt', String(failed)]
+            ];
+            stats.forEach(([name, value]) => {
+                const item = document.createElement('div');
+                item.className = 'mobile-grade-stat';
+                const label = document.createElement('span');
+                label.textContent = name;
+                const number = document.createElement('strong');
+                number.textContent = value;
+                item.append(label, number);
+                summary.appendChild(item);
+            });
+            if (!filteredGrades.length) {
+                const empty = document.createElement('p');
+                empty.className = 'mobile-grade-empty';
+                empty.textContent = allGrades.length ? 'Không có học phần nào phù hợp với bộ lọc.' : 'Chưa có học phần trong bảng điểm. Nhấn “Nhập thủ công” để thêm.';
+                container.appendChild(empty);
+                return;
+            }
+            const addText = (el, name, className) => {
+                const child = document.createElement('span');
+                if (className) child.className = className;
+                child.textContent = String(name ?? '');
+                el.appendChild(child);
+                return child;
+            };
+            filteredGrades.forEach(g => {
+                const originalIndex = storedGrades.findIndex(item =>
+                    String(item.code || '').trim().toUpperCase() === String(g.code || '').trim().toUpperCase());
+                const card = document.createElement('article');
+                card.className = 'mobile-grade-card';
+                const top = document.createElement('div');
+                top.className = 'mobile-grade-card-top';
+                const names = document.createElement('div');
+                names.className = 'mobile-grade-card-names';
+                addText(names, g.code, 'mobile-grade-code');
+                addText(names, g.name, 'mobile-grade-name');
+                top.appendChild(names);
+                const status = document.createElement('span');
+                status.className = 'mobile-grade-status ' + (isPassedCourse(g) ? 'passed' : isFailedCourse(g) ? 'failed' : 'pending');
+                status.textContent = isPassedCourse(g) ? 'Đạt' : isFailedCourse(g) ? 'Chưa đạt' : 'Chưa có điểm';
+                top.appendChild(status);
+                card.appendChild(top);
+
+                const core = document.createElement('div');
+                core.className = 'mobile-grade-card-core';
+                const score = document.createElement('div');
+                score.className = 'mobile-grade-score';
+                addText(score, 'Điểm tổng kết', 'mobile-grade-small-label');
+                addText(score, hasCourseScore(g) ? convertGrade(Number(g.score), currentGradeScale) : '—', 'mobile-grade-number');
+                const credit = document.createElement('div');
+                credit.className = 'mobile-grade-credit';
+                addText(credit, 'Số tín chỉ', 'mobile-grade-small-label');
+                addText(credit, String(getStandardCredit(g.code, g.tc)) + ' TC', 'mobile-grade-credit-number');
+                core.append(score, credit);
+                card.appendChild(core);
+
+                const details = document.createElement('div');
+                details.className = 'mobile-grade-details';
+                details.hidden = true;
+                const fields = [['Năm học',g.year],['Học kỳ',normalizeSemester(g.sem)==='3'?'HK3 – Hè':'HK'+(normalizeSemester(g.sem)||'—')],['Loại',g.note||'Học phần mới']];
+                fields.forEach(([label,value]) => {
+                    const field = document.createElement('div');
+                    field.className = 'mobile-grade-detail-row';
+                    addText(field,label,'mobile-grade-detail-label');
+                    addText(field,value,'mobile-grade-detail-value');
+                    details.appendChild(field);
+                });
+                const scores = Array.isArray(g.scoresList) && g.scoresList.length ? g.scoresList : (hasCourseScore(g) ? [{weight:100,score:g.score}] : []);
+                scores.forEach((part,i) => {
+                    const field = document.createElement('div');
+                    field.className = 'mobile-grade-detail-row';
+                    addText(field,'Cột điểm '+(i+1)+' ('+part.weight+'%)','mobile-grade-detail-label');
+                    addText(field,String(part.score??'—'),'mobile-grade-detail-value');
+                    details.appendChild(field);
+                });
+                if (g.bonusScore?.weight != null && g.bonusScore?.score != null) {
+                    const bonus = document.createElement('div');
+                    bonus.className = 'mobile-grade-detail-row';
+                    addText(bonus,'Điểm cộng ('+g.bonusScore.weight+'%)','mobile-grade-detail-label');
+                    addText(bonus,String(g.bonusScore.score),'mobile-grade-detail-value');
+                    details.appendChild(bonus);
+                }
+                card.appendChild(details);
+
+                const actions = document.createElement('div');
+                actions.className = 'mobile-grade-card-actions';
+                const viewBtn = document.createElement('button');
+                viewBtn.type = 'button';
+                viewBtn.className = 'mobile-grade-action mobile-grade-view';
+                viewBtn.textContent = 'Chi tiết';
+                viewBtn.setAttribute('aria-expanded','false');
+                viewBtn.addEventListener('click', () => {
+                    details.hidden = !details.hidden;
+                    viewBtn.textContent = details.hidden ? 'Chi tiết' : 'Thu gọn';
+                    viewBtn.setAttribute('aria-expanded',String(!details.hidden));
+                });
+                actions.appendChild(viewBtn);
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'mobile-grade-action mobile-grade-edit';
+                editBtn.textContent = 'Chỉnh sửa';
+                editBtn.disabled = originalIndex < 0;
+                editBtn.addEventListener('click', () => {
+                    if (originalIndex >= 0) window.editCourse(originalIndex);
+                });
+                actions.appendChild(editBtn);
+                card.appendChild(actions);
+                container.appendChild(card);
+            });
+        }
+
         // --- 1. HÀM RENDER DỮ LIỆU ---
         function renderGrades() {
             document.getElementById('display-fullname').textContent = currentUser.fullname;
@@ -2360,6 +2487,7 @@ if (window.location.pathname.includes('grades.html')) {
                     
             });
 
+            renderMobileGradeCards(tableRows, userGrades, storedGrades);
             const metrics = getCourseMetrics(userGrades);
             earnedCredits = metrics.earnedCredits;
             totalCreditsForGPA = metrics.attemptedCredits;
@@ -3238,7 +3366,7 @@ if (window.location.pathname.includes('grades.html')) {
             saveCurrentUser();
             editModal.style.display = 'none';
             renderGrades();
-            toggleEditMode(true);
+            toggleEditMode(window.innerWidth > 768);
         });
 
         document.getElementById('btn-delete-course').addEventListener('click', () => {
