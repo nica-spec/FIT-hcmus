@@ -161,7 +161,11 @@
                     <label class="language-label" for="cert-date">Ngày cấp (bắt buộc):</label>
                     <input type="text" id="cert-date" class="language-input" value="" placeholder="dd/mm/yyyy" required inputmode="numeric" maxlength="10" aria-describedby="cert-validity-note">
                 </div>
-                <p id="cert-validity-note" style="font-size:12px;color:#64748b;margin:4px 0 12px;">Chứng chỉ có hiệu lực tối đa 2 năm kể từ ngày cấp. Ngày xét được tính theo ngày hiện tại; quá hạn sẽ không được công nhận.</p>
+                <div class="language-row">
+                    <label class="language-label" for="cert-submit-date">Ngày nộp (bắt buộc):</label>
+                    <input type="text" id="cert-submit-date" class="language-input" value="" placeholder="dd/mm/yyyy" required inputmode="numeric" maxlength="10" aria-describedby="cert-validity-note">
+                </div>
+                <p id="cert-validity-note" style="font-size:12px;color:#64748b;margin:4px 0 12px;">Ngày nộp là mốc xét hiệu lực chứng chỉ. Chỉ công nhận nếu ngày nộp từ ngày cấp đến hết ngày tròn 2 năm sau ngày cấp.</p>
 
                 <div class="language-check-btn-container">
                     <button type="button" class="btn-check-cert" id="btn-check-cert">Kiểm tra</button>
