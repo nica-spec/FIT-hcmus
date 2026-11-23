@@ -1082,6 +1082,32 @@ Object.values(CTDT_KHMT_2025).forEach(group => {
   });
 });
 
+// Năm định hướng thuộc ngành KHMT K2025 (mục 7.2.2.1–7.2.2.5 CTĐT).
+const KHMT_MAJOR_NAMES = ["Khoa học máy tính","Công nghệ tri thức","Thị giác máy tính","An toàn thông tin","Khoa học dữ liệu"];
+const KHMT_MAJOR_LISTS = {"Công nghệ tri thức":{"core":"CSC14007 CSC15001 CSC15002 CSC15003 CSC15004 CSC15005 CSC15006 CSC15007 CSC15009 CSC15011 CSC15012 CSC15109","elect":"CSC10121 CSC10102 CSC10103 CSC10104 CSC10105 CSC10106 CSC10107 CSC14101 CSC14120 CSC15010 CSC15102 CSC15107 CSC15108 CSC15110 CSC16106 CSC18106"},"Thị giác máy tính":{"core":"CSC16001 CSC16002 CSC16003 CSC16004 CSC16005","elect":"CSC16101 CSC16102 CSC16105 CSC16106 CSC16107 CSC16109 CSC16113 CSC16114 CSC16115"},"An toàn thông tin":{"core":"CSC15001 CSC15002 CSC15003 CSC15005 CSC15010 CSC15109","elect":"CSC10104 CSC10107 CSC11004 CSC11120 CSC12001 CSC14005 CSC14007 CSC14117 CSC14120 CSC15004 CSC15107 CSC16106"},"Khoa học dữ liệu":{"core":"CSC10108 CSC14004 CSC14005 CSC14119 CSC17001 CSC17104","elect":"CSC14117 CSC14118 CSC14120 CSC15004 CSC15007 CSC15102 CSC17103 CSC17106 CSC18001 CSC18002 CSC18106 CSC18107"}};
+const KHMT_MAJOR_NAMES_BY_CODE = {"CSC14007":"Nhập môn phân tích độ phức tạp tính toán","CSC15001":"An ninh máy tính","CSC15002":"Bảo mật cơ sở dữ liệu","CSC15003":"Mã hóa ứng dụng","CSC15004":"Học thống kê","CSC15005":"Nhập môn mã hóa – mật mã","CSC15006":"Nhập môn xử lý ngôn ngữ tự nhiên","CSC15007":"Thống kê máy tính và ứng dụng","CSC15009":"Xử lý tín hiệu số","CSC15011":"Nhập môn ngôn ngữ học thống kê và ứng dụng","CSC15012":"Ứng dụng xử lý ngôn ngữ tự nhiên trong doanh nghiệp","CSC15109":"Nhập môn tính toán lượng tử","CSC10121":"Kỹ năng mềm","CSC10105":"Nhập môn tư duy thuật toán","CSC10106":"Thuật toán tổ hợp và ứng dụng","CSC10107":"Thực tập thực tế","CSC15010":"Blockchain và ứng dụng","CSC15102":"Phân tích mạng xã hội","CSC15107":"Bảo vệ dữ liệu và quyền riêng tư","CSC15108":"Pháp chứng cho dữ liệu số","CSC15110":"Ứng dụng trí tuệ nhân tạo","CSC16106":"Nhập môn lập trình điều khiển thông minh","CSC16001":"Đồ họa máy tính","CSC16002":"Phương pháp toán trong phân tích dữ liệu","CSC16003":"Phân tích thiết kế dữ liệu đa chiều","CSC16004":"Thị giác máy tính","CSC16005":"Xử lý ảnh số và video số","CSC16101":"Đồ họa ứng dụng","CSC16102":"Kỹ thuật lập trình xử lý ảnh và video số","CSC16105":"Truy vấn thông tin thị giác","CSC16107":"Ứng dụng thị giác máy tính","CSC16109":"Ứng dụng xử lý ảnh và video số","CSC16113":"Thị giác máy tính ba chiều","CSC16114":"Học sâu trong thị giác máy tính","CSC16115":"Triển khai và vận hành hệ thống thị giác","CSC11004":"Mạng máy tính nâng cao","CSC11120":"Bảo mật web và thiết bị di động","CSC12001":"Hệ quản trị cơ sở dữ liệu","CSC17104":"Lập trình cho khoa học dữ liệu","CSC17103":"Khai thác dữ liệu đồ thị","CSC17106":"Xử lý phân tích dữ liệu trực tuyến","CSC18001":"Nhập môn học sâu","CSC18002":"Nhập môn trí tuệ nhân tạo tạo sinh","CSC18106":"Mô hình ngôn ngữ lớn","CSC18107":"Các chủ đề chọn lọc trong trí tuệ nhân tạo"};
+function selectedK2025Major() {
+    try {
+        const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        return KHMT_MAJOR_NAMES.includes(user?.major) ? user.major : '';
+    } catch { return ''; }
+}
+function getSelectedMajorCourses() {
+    const selected = selectedK2025Major();
+    if (!selected) return [];
+    if (selected === 'Khoa học máy tính') return CTDT_KHMT_2025.major;
+    const groups = KHMT_MAJOR_LISTS[selected];
+    if (!groups) return [];
+    const build = (text, section) => text.split(' ').filter(Boolean).map(code => {
+        const base = Object.values(CTDT_KHMT_2025).flat().find(c => c.code === code);
+        return base ? {...base, section} : {
+            code, name: KHMT_MAJOR_NAMES_BY_CODE[code] || code,
+            tc:4, type:'TC', lt:45, th:30, bt:0, req:'', section, project:0
+        };
+    });
+    return [...build(groups.core,'major_core'), ...build(groups.elect,'major_elective')];
+}
+
 const CTDT_REQUIREMENTS = Object.freeze({general:56,politics:14,skills:2,math:36,it:4,foundation:38,major:34,graduation:10,total:138});
 const CTDT_COURSE_INDEX = Object.fromEntries(Object.entries(CTDT_KHMT_2025).flatMap(([group,items])=>items.map(c=>[c.code,{...c,group}])));
 function getCurriculumCredits(grades,group){
@@ -1091,7 +1117,14 @@ function getCurriculumCredits(grades,group){
  const sum = list=>list.reduce((a,c)=>a+(byCode.has(c.code)?c.tc:0),0);
  if(group==='skills') return Math.min(2,sum(source));
  if(group==='math') return sum(source.filter(c=>!c.section))+Math.min(4,sum(source.filter(c=>c.section==='math_choice')))+Math.min(6,sum(source.filter(c=>c.section==='science_choice')))+Math.min(2,sum(source.filter(c=>c.section==='environment_choice')));
- if(group==='major') return Math.min(34,Math.min(16,sum(source.filter(c=>c.section==='major_core')))+Math.min(18,sum(source.filter(c=>c.section==='major_elective'))+Math.max(0,sum(source.filter(c=>c.section==='major_core'))-16)));
+ if(group==='major') {
+     if (!selectedK2025Major()) return 0;
+     const chosen = getSelectedMajorCourses();
+     const earned = list => list.reduce((a,c)=>a+(byCode.has(c.code)?c.tc:0),0);
+     const core = earned(chosen.filter(c=>c.section==='major_core'));
+     const electives = earned(chosen.filter(c=>c.section==='major_elective'));
+     return Math.min(34,Math.min(16,core)+Math.min(18,electives+Math.max(0,core-16)));
+ }
  if(group==='graduation') return Math.min(10, Math.max(...source.filter(c=>c.section==='grad_full').map(c=>byCode.has(c.code)?10:0),0, Math.min(6,sum(source.filter(c=>c.section==='grad_project')))+Math.min(4,sum(source.filter(c=>c.section==='grad_seminar')))));
  return Math.min(CTDT_REQUIREMENTS[group]||Infinity,sum(source));
 }
@@ -1160,6 +1193,11 @@ const courseDictionary = {
     "CSC11120": "Bảo mật web và thiết bị di động"
 };
 
+// Bổ sung tên/tín chỉ các môn thuộc bốn định hướng khác để bảng điểm nhận mã hợp lệ.
+Object.entries(KHMT_MAJOR_NAMES_BY_CODE).forEach(([code,name]) => {
+    if (!Object.prototype.hasOwnProperty.call(courseDictionary,code)) courseDictionary[code]=name;
+    if (!Object.prototype.hasOwnProperty.call(courseCredits,code)) courseCredits[code]=4;
+});
 // Ưu tiên thông tin được đối chiếu từ CTĐT K2025, không thay đổi dữ liệu điểm của sinh viên.
 Object.entries(CTDT_COURSE_INDEX).forEach(([code,info])=>{courseCredits[code]=info.tc;courseDictionary[code]=info.name;});
 // Giữ mã cũ để bảng điểm đã nhập không tự biến mất; mã chính thức mới được dùng ở danh mục.
@@ -3040,6 +3078,11 @@ if (window.location.pathname.includes('grades.html')) {
     }
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    const label = document.getElementById('program-selected-major');
+    if (label) label.textContent = selectedK2025Major() || 'Chưa chọn chuyên ngành — vào Cài đặt để chọn';
+});
+
 // -------------------------------------------------------------
 // 7. ĐỒNG BỘ TRẠNG THÁI "ĐÃ HỌC" CHO TRANG KHUNG CTĐT
 // -------------------------------------------------------------
@@ -4126,7 +4169,12 @@ if (window.location.pathname.includes('module-major.html')) {
         document.getElementById('display-mssv').textContent = `MSSV: ${currentUser.studentId}`;
 
         // Danh sách môn học chuẩn của nhóm Chuyên ngành (Mục tiêu: 34 tín chỉ)
-        const courseData = CTDT_KHMT_2025.major.map((c,i)=>({...c,stt:String(i+1)}));
+        const selectedMajor = selectedK2025Major();
+        const courseData = getSelectedMajorCourses().map((c,i)=>({...c,stt:String(i+1)}));
+        const majorTitle = document.getElementById('selected-major-title');
+        if (majorTitle) majorTitle.textContent = selectedMajor || 'Chưa chọn chuyên ngành';
+        const majorGuide = document.getElementById('selected-major-notice');
+        if (majorGuide) majorGuide.hidden = !!selectedMajor;
 
         const gradesList = getLatestCourses((currentUser.stats && currentUser.stats.gradesList) ? currentUser.stats.gradesList : []);
         const tbody = document.getElementById('course-table-body-major');
@@ -4729,10 +4777,11 @@ if (window.location.pathname.includes('settings.html')) {
             e.preventDefault();
             const name = document.getElementById('edit-user-name').value.trim();
             const id = document.getElementById('edit-user-id').value.trim();
-            const major = document.getElementById('edit-user-major').value.trim();
+            const major = document.getElementById('edit-user-major').value;
             const password = document.getElementById('edit-user-password').value;
             const confirmPassword = document.getElementById('edit-user-confirm').value;
             if (!name || !id) { alert('Tên và MSSV không được để trống.'); return; }
+            if (!KHMT_MAJOR_NAMES.includes(major)) { alert('Vui lòng chọn một trong 5 chuyên ngành của ngành Khoa học máy tính.'); return; }
             if (!/^\d+$/.test(id)) { alert('Mã số sinh viên chỉ được phép chứa các chữ số (0-9)!'); return; }
             if (password && password.length < 6) { alert('Mật khẩu mới phải có ít nhất 6 ký tự.'); return; }
             if (password !== confirmPassword) { alert('Xác nhận mật khẩu mới không khớp.'); return; }
