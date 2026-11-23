@@ -4479,7 +4479,7 @@ if (window.location.pathname.includes('graduation.html')) {
                 if (custom && custom.certType) {
                     typeEl.value = custom.certType;
                     scoreEl.value = custom.certScore || '';
-                    const toeicParts = String(custom.certScore || '').match(/^\\s*(\\d+)\\s*[,;\\/]\\s*(\\d+)\\s*$/);
+                    const toeicParts = String(custom.certScore || '').match(/^\s*(\d+)\s*[,;/]\s*(\d+)\s*$/);
                     document.getElementById('cert-toeic-listening').value = toeicParts ? toeicParts[1] : '';
                     document.getElementById('cert-toeic-speaking').value = toeicParts ? toeicParts[2] : '';
                     dateEl.value = custom.certDate || '';
