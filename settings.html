@@ -113,7 +113,14 @@
         <form id="user-edit-form" class="user-edit-form">
           <label>Họ và tên<input id="edit-user-name" required maxlength="100" autocomplete="name"></label>
           <label>Mã số sinh viên<input id="edit-user-id" required maxlength="30" autocomplete="off" inputmode="numeric" pattern="[0-9]+" title="Mã số sinh viên chỉ được nhập chữ số (0-9)" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></label>
-          <label>Chuyên ngành<input id="edit-user-major" maxlength="100" placeholder="Chưa chọn chuyên ngành"></label>
+          <label>Chuyên ngành<select id="edit-user-major" required class="set-input">
+<option value="" disabled>-- Chọn chuyên ngành --</option>
+<option value="Khoa học máy tính">Khoa học máy tính</option>
+<option value="Công nghệ tri thức">Công nghệ tri thức</option>
+<option value="Thị giác máy tính">Thị giác máy tính</option>
+<option value="An toàn thông tin">An toàn thông tin</option>
+<option value="Khoa học dữ liệu">Khoa học dữ liệu</option>
+</select></label>
           <label>Mật khẩu mới (để trống nếu không đổi)<input id="edit-user-password" type="password" minlength="6" autocomplete="new-password"></label>
           <label>Xác nhận mật khẩu mới<input id="edit-user-confirm" type="password" autocomplete="new-password"></label>
           <div class="confirm-actions">
