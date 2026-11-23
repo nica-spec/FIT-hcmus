@@ -135,24 +135,18 @@
                     <select id="cert-type" class="language-input" autocomplete="off">
                         <!-- Thêm dòng này để tạo tùy chọn trống làm mặc định -->
                         <option value="" disabled selected hidden>-- Chọn chứng chỉ --</option>
+                        <option value="VNU-EPT">VNU-EPT</option>
                         <option value="IELTS">IELTS</option>
-                        <option value="VSTEP">VSTEP</option>
                         <option value="TOEFL (iBT)">TOEFL (iBT)</option>
-                        <option value="TOEFL (ITP)">TOEFL (ITP)</option>
-                        <option value="TOEFL (ITP) + TOEIC">TOEFL (ITP) + TOEIC</option>
-                        <option value="TOEFL (CBT)">TOEFL (CBT)</option>
                         <option value="TOEIC 4 kỹ năng">TOEIC 4 kỹ năng</option>
-                        <option value="PET-CEFR">PET-CEFR</option>
-                        <option value="FCE">FCE</option>
-                        <option value="BEC">BEC</option>
-                        <option value="BULATS">BULATS</option>
+                        <option value="PET">PET</option>
                     </select>
                 </div>
 
                 <div class="language-row">
                     <label class="language-label">Nhập điểm:</label>
                     <!-- Bỏ value="6.5", đặt placeholder có chữ VD: -->
-                    <input type="text" id="cert-score" class="language-input" value="" placeholder="VD: 6.5">
+                    <input type="text" id="cert-score" class="language-input" value="" placeholder="VD: 4.0">
                 </div>
 
                 <div class="language-row">
@@ -190,96 +184,13 @@
             </div>
             <div class="cert-info-table-container">
                 <table class="cert-info-table">
-                    <thead>
-                        <tr>
-                            <th rowspan="2">Tên chứng chỉ</th>
-                            <th rowspan="2">Nơi cấp chứng chỉ</th>
-                            <th colspan="3">Mức điểm tối thiểu</th>
-                        </tr>
-                        <tr>
-                            <th>Chương trình đại trà</th>
-                            <th>Chương trình tăng cường tiếng Anh (*)</th>
-                            <th>Chương trình tiên tiến ngành Khoa học máy tính</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Chứng chỉ</th><th>Nơi cấp</th><th>Điểm tối thiểu B1.2</th></tr></thead>
                     <tbody>
-                        <tr>
-                            <td>VSTEP</td>
-                            <td>Các đơn vị được Bộ GD&ĐT cấp phép</td>
-                            <td>B1 (bậc 3/6)</td>
-                            <td>B2 (bậc 4/6)</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>IELTS</td>
-                            <td>British Council hoặc IDP Australia</td>
-                            <td>4.5</td>
-                            <td>5.0</td>
-                            <td>6.0</td>
-                        </tr>
-                        <tr>
-                            <td>TOEFL (iBT)</td>
-                            <td>ETS</td>
-                            <td>45</td>
-                            <td>61</td>
-                            <td>79</td>
-                        </tr>
-                        <tr>
-                            <td>TOEFL (ITP)</td>
-                            <td>ETS</td>
-                            <td>450</td>
-                            <td>-</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>TOEFL (ITP) + TOEIC 2 kỹ năng Nói - Viết<br><i>(Chỉ áp dụng cho các chương trình CNTT)</i></td>
-                            <td>ETS</td>
-                            <td>-</td>
-                            <td>TOEFL: 500;<br>TOEIC Nói-Viết: 240</td>
-                            <td>TOEFL ITP: 550;<br>TOEIC Nói-Viết: 270</td>
-                        </tr>
-                        <tr>
-                            <td>TOEFL (CBT)</td>
-                            <td>ETS</td>
-                            <td>133</td>
-                            <td>-</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>TOEIC 4 kỹ năng</td>
-                            <td>ETS</td>
-                            <td>450 Nghe-Đọc;<br>181 Nói-Viết</td>
-                            <td>840 điểm tổng;<br>600 Nghe-Đọc;<br>240 Nói-Viết</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>PET-CEFR</td>
-                            <td>Cambridge ESOL</td>
-                            <td>B1</td>
-                            <td>-</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>FCE</td>
-                            <td>Cambridge ESOL</td>
-                            <td>-</td>
-                            <td>B2 First hoặc 160 điểm</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>BEC (Business English Certificate)</td>
-                            <td>Cambridge Assessment</td>
-                            <td>Preliminary (B1)</td>
-                            <td>Vantage (B2)</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>BULATS</td>
-                            <td>Cambridge Assessment</td>
-                            <td>40</td>
-                            <td>60</td>
-                            <td>-</td>
-                        </tr>
+                        <tr><td>VNU-EPT</td><td>ĐHQG-HCM</td><td>176</td></tr>
+                        <tr><td>IELTS</td><td>British Council hoặc IDP Australia</td><td>4.0</td></tr>
+                        <tr><td>TOEFL (iBT)</td><td>ETS</td><td>32</td></tr>
+                        <tr><td>TOEIC 4 kỹ năng</td><td>ETS</td><td>316 Nghe-Đọc và 181 Nói-Viết</td></tr>
+                        <tr><td>PET</td><td>Cambridge</td><td>80</td></tr>
                     </tbody>
                 </table>
             </div>
