@@ -1075,6 +1075,32 @@ function k2025PriorLabel(course) {
 }
 
 // Đồng bộ trường req cho mọi bảng học phần, kể cả các trang cũ còn render c.req.
+// Quy tắc riêng của ứng dụng theo yêu cầu người dùng: chỉ cho thêm môn thuộc
+// chuyên ngành đã chọn nếu ĐÃ HỌC các môn được đề nghị học trước trong danh sách K2025.
+// Không biến các ghi chú "không bắt buộc" / "có thể học song song" thành điều kiện chặn.
+function checkMajorRegistrationPrior(courseCode, grades) {
+    const code = String(courseCode || '').trim().toUpperCase();
+    const courses = getSelectedMajorCourses();
+    if (!courses.some(c => String(c.code || '').toUpperCase() === code)) {
+        return {allowed:true, applies:false, missing:[]};
+    }
+    const notes = K2025_SUGGESTED_PRIOR_NOTES[code] || {};
+    const required = (K2025_SUGGESTED_PRIOR[code] || []).filter(priorCode => {
+        const note = String(notes[priorCode] || '').toLowerCase();
+        return !/không bắt buộc|học song song|có thể học.*song song/.test(note);
+    });
+    const attempted = new Set((grades || []).filter(hasCourseScore)
+        .map(g => String(g.code || '').trim().toUpperCase()));
+    const missing = required.filter(priorCode => !attempted.has(priorCode));
+    return {allowed:missing.length===0, applies:true, missing};
+}
+function majorRegistrationPriorMessage(check) {
+    if (check.allowed) return '';
+    return 'Chưa thể đăng ký học phần chuyên ngành. Cần học trước: ' +
+        check.missing.map(code => code + ' — ' + (courseDictionary[code] || CTDT_COURSE_INDEX[code]?.name || 'Học phần chưa xác định')).join('; ') +
+        '. (Quy tắc chặn của ứng dụng dựa trên danh sách ĐỀ NGHỊ học trước K2025, không phải điều kiện tiên quyết bắt buộc do trường công bố.)';
+}
+
 // Nguồn K2025 chỉ liệt kê học phần ĐỀ NGHỊ học trước, không xác nhận tiên quyết bắt buộc.
 Object.values(CTDT_KHMT_2025).forEach(group => {
   group.forEach(course => {
@@ -2764,6 +2790,11 @@ if (window.location.pathname.includes('grades.html')) {
                 return;
             }
 
+            const priorCheck = checkMajorRegistrationPrior(codeVal, currentUser.stats.gradesList || []);
+            if (!priorCheck.allowed) {
+                showManualStatus(majorRegistrationPriorMessage(priorCheck));
+                return;
+            }
             const existingCourse = (currentUser.stats.gradesList || []).find(
                 course => String(course.code || '').trim().toUpperCase() === codeVal
             );
@@ -3097,6 +3128,17 @@ if (window.location.pathname.includes('grades.html')) {
 
             const originalCourse = currentUser.stats.gradesList[editingIndex];
             const requiredEditType = expectedRepeatType(originalCourse);
+            // Sửa điểm của chính môn đang có không phải đăng ký mới.
+            // Khi đổi mã môn thành môn chuyên ngành khác, áp dụng kiểm tra như thao tác Thêm.
+            if (String(originalCourse.code || '').trim().toUpperCase() !== updatedCode) {
+                const priorCheck = checkMajorRegistrationPrior(
+                    updatedCode, currentUser.stats.gradesList.filter((_,i) => i !== editingIndex)
+                );
+                if (!priorCheck.allowed) {
+                    alert(majorRegistrationPriorMessage(priorCheck));
+                    return;
+                }
+            }
             // Không cho đổi mã sang một học phần đã có, tránh ghi đè dữ liệu không chủ ý.
             const isDuplicate = currentUser.stats.gradesList.some((course, index) =>
                 String(course.code || '').trim().toUpperCase() === updatedCode && index !== editingIndex
