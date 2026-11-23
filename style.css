@@ -3237,3 +3237,106 @@ select.gray-pill, input.gray-pill {
     .stats-row { width: 100%; flex-wrap: wrap; }
     .stat-card { min-width: 0 !important; flex: 1 1 125px; }
 }
+
+/* Trang Tốt nghiệp: mỗi hàng thành thẻ dễ đọc trên điện thoại, không cuộn ngang. */
+.grad-note-mobile { display: none; }
+@media (max-width: 768px) {
+    .grad-container { padding: 8px 0 22px !important; min-width: 0; width: 100%; }
+    .grad-page-title { margin: 0 0 16px !important; font-size: clamp(18px, 5vw, 23px); }
+    .grad-table-wrap {
+        overflow: visible !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        margin: 0 auto !important;
+    }
+    .grad-table, .grad-table tbody {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        border: 0 !important;
+        background: transparent;
+    }
+    .grad-table thead { display: none !important; }
+    .grad-table tbody { display: grid !important; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .grad-table tbody tr {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 12px 8px;
+        width: 100%;
+        min-width: 0;
+        padding: 16px 14px;
+        border: 1px solid #dbe4f0;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 3px 14px rgba(15, 23, 42, .05);
+    }
+    .grad-table tbody tr > td {
+        display: block !important;
+        min-width: 0;
+        width: auto !important;
+        padding: 0 !important;
+        border: 0 !important;
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+    .grad-table tbody tr > td:nth-child(1) {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: center;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .grad-table tbody tr > td:nth-child(2) {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: start;
+        justify-self: end;
+    }
+    .grad-table .badge-grad-done, .grad-table .badge-grad-pending {
+        min-width: 0 !important;
+        gap: 5px;
+        padding: 7px 9px !important;
+        font-size: 11px !important;
+        line-height: 1.35;
+        white-space: nowrap;
+    }
+    .grad-table .badge-grad-done i, .grad-table .badge-grad-pending i { font-size: 13px !important; }
+    .grad-table tbody tr > td:nth-child(3) {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        padding-top: 10px !important;
+        border-top: 1px solid #e2e8f0 !important;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    .grad-table tbody tr > td:nth-child(4) {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        justify-self: end;
+    }
+    .grad-table .btn-grad-edit {
+        min-height: 40px;
+        min-width: 44px;
+        padding: 8px 12px;
+        border-radius: 10px;
+    }
+    .grad-note-desktop { display: none !important; }
+    .grad-note-mobile { display: flex; flex-direction: column; gap: 8px; }
+    .grad-detail-line {
+        display: grid;
+        grid-template-columns: minmax(88px, 34%) minmax(0, 1fr);
+        gap: 8px;
+        align-items: baseline;
+    }
+    .grad-detail-label { font-weight: 700; color: #475569; }
+    .grad-detail-value { min-width: 0; color: #1e293b; overflow-wrap: anywhere; }
+}
+@media (max-width: 375px) {
+    .grad-table tbody tr { grid-template-columns: minmax(0, 1fr); }
+    .grad-table tbody tr > td:nth-child(1) { grid-column: 1; grid-row: 1; }
+    .grad-table tbody tr > td:nth-child(2) { grid-column: 1; grid-row: 2; justify-self: start; }
+    .grad-table tbody tr > td:nth-child(3) { grid-column: 1; grid-row: 3; }
+    .grad-table tbody tr > td:nth-child(4) { grid-column: 1; grid-row: 4; justify-self: end; }
+}
