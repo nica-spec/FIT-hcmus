@@ -144,10 +144,17 @@
                     </select>
                 </div>
 
-                <div class="language-row">
-                    <label class="language-label">Nhập điểm:</label>
-                    <!-- Bỏ value="6.5", đặt placeholder có chữ VD: -->
+                <div class="language-row" id="cert-single-score-row">
+                    <label class="language-label" for="cert-score">Nhập điểm:</label>
                     <input type="text" id="cert-score" class="language-input" value="" placeholder="VD: 4.0">
+                </div>
+                <div class="language-row" id="cert-toeic-listening-row" style="display:none;">
+                    <label class="language-label" for="cert-toeic-listening">TOEIC Nghe – Đọc (0–990):</label>
+                    <input type="number" id="cert-toeic-listening" class="language-input" min="0" max="990" step="1" inputmode="numeric" placeholder="VD: 316">
+                </div>
+                <div class="language-row" id="cert-toeic-speaking-row" style="display:none;">
+                    <label class="language-label" for="cert-toeic-speaking">TOEIC Nói – Viết (0–400):</label>
+                    <input type="number" id="cert-toeic-speaking" class="language-input" min="0" max="400" step="1" inputmode="numeric" placeholder="VD: 181">
                 </div>
 
                 <div class="language-row">
@@ -187,11 +194,11 @@
                 <table class="cert-info-table">
                     <thead><tr><th>Chứng chỉ</th><th>Nơi cấp</th><th>Điểm tối thiểu B1.2</th></tr></thead>
                     <tbody>
-                        <tr><td>VNU-EPT</td><td>ĐHQG-HCM</td><td>176</td></tr>
+                        <tr><td>VNU-EPT</td><td>ĐHQG-HCM</td><td>176 (tối đa 400)</td></tr>
                         <tr><td>IELTS</td><td>British Council hoặc IDP Australia</td><td>4.0 (tối đa 9.0)</td></tr>
                         <tr><td>TOEFL (iBT)</td><td>ETS</td><td>32</td></tr>
                         <tr><td>TOEIC 4 kỹ năng</td><td>ETS</td><td>316 Nghe-Đọc và 181 Nói-Viết (tối đa 990 và 400)</td></tr>
-                        <tr><td>PET</td><td>Cambridge</td><td>80</td></tr>
+                        <tr><td>PET</td><td>Cambridge</td><td>80 (tối đa 170)</td></tr>
                     <tr><td>VSTEP</td><td>Đơn vị được cấp phép</td><td>Thang 0–10; Điều 6 chưa nêu ngưỡng công nhận</td></tr>
                     </tbody>
                 </table>
