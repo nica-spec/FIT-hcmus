@@ -4435,9 +4435,10 @@ if (window.location.pathname.includes('graduation.html')) {
         // --- XỬ LÝ MODAL & ĐỒNG BỘ PLACEHOLDER ---
         const scorePlaceholders = {
             'VNU-EPT':'VD: 176',
-            'IELTS':'VD: 4.0',
+            'IELTS':'VD: 4.0 (tối đa 9.0)',
+            'VSTEP':'VD: 5.0 (tối đa 10.0)',
             'TOEFL (iBT)':'VD: 32',
-            'TOEIC 4 kỹ năng':'VD: 316, 181 (Nghe-Đọc, Nói-Viết)',
+            'TOEIC 4 kỹ năng':'VD: 316, 181 (tối đa 990, 400)',
             'PET':'VD: 80'
         };
         function syncCertPlaceholder() {
@@ -4540,18 +4541,31 @@ if (window.location.pathname.includes('graduation.html')) {
 
             function evaluateCertificate(type, rawScore) {
                 const value = String(rawScore ?? '').trim();
-                if (!value) return { valid:false, passed:false, message:'Vui lòng nhập điểm chứng chỉ!' };
-                if (/-\s*\d/.test(value)) return { valid:false, passed:false, message:'Điểm chứng chỉ không được là số âm!' };
+                const invalid = message => ({ valid:false, passed:false, message });
+                if (!value) return invalid('Vui lòng nhập điểm chứng chỉ!');
+                if (/-\s*\d/.test(value)) return invalid('Điểm chứng chỉ không được là số âm!');
                 if (type === 'TOEIC 4 kỹ năng') {
                     const match = value.match(/^(\d+)\s*[,;\/]\s*(\d+)$/);
-                    if (!match) return { valid:false, passed:false, message:'Nhập TOEIC theo dạng: 316, 181 (Nghe-Đọc, Nói-Viết).' };
-                    const passed = Number(match[1]) >= 316 && Number(match[2]) >= 181;
+                    if (!match) return invalid('Nhập hai tổng điểm TOEIC: Nghe-Đọc, Nói-Viết (VD: 316, 181).');
+                    const listening = Number(match[1]), speaking = Number(match[2]);
+                    if (listening > 990 || speaking > 400) return invalid('Điểm vượt thang TOEIC: Nghe-Đọc tối đa 990, Nói-Viết tối đa 400.');
+                    const passed = listening >= 316 && speaking >= 181;
                     return { valid:true, passed, message:passed ? 'Đạt chuẩn B1.2' : 'Chưa đạt: yêu cầu Nghe-Đọc 316 và Nói-Viết 181.' };
                 }
+                if (!/^\d+(?:[.,]\d+)?$/.test(value)) return invalid('Điểm phải là số hợp lệ không âm.');
+                const score = Number(value.replace(',', '.'));
+                if (type === 'VSTEP') {
+                    if (score > 10) return invalid('VSTEP có thang điểm từ 0 đến 10.');
+                    if (Math.abs(score * 2 - Math.round(score * 2)) > 1e-8) return invalid('VSTEP cần nhập điểm theo bước 0.5.');
+                    return { valid:true, passed:false, message:'Điểm VSTEP hợp lệ, nhưng Điều 6 được cung cấp chưa quy định ngưỡng công nhận VSTEP cho chuẩn B1.2.' };
+                }
                 const limits = {'VNU-EPT':176,'IELTS':4,'TOEFL (iBT)':32,'PET':80};
-                if (!Object.prototype.hasOwnProperty.call(limits,type)) return { valid:false, passed:false, message:'Chứng chỉ chưa thuộc danh sách Điều 6.' };
-                if (!/^\d+(?:[.,]\d+)?$/.test(value)) return { valid:false, passed:false, message:'Điểm phải là số hợp lệ không âm.' };
-                const passed = Number(value.replace(',','.')) >= limits[type];
+                if (!Object.prototype.hasOwnProperty.call(limits,type)) return invalid('Chứng chỉ chưa thuộc danh sách Điều 6.');
+                if (type === 'IELTS') {
+                    if (score > 9) return invalid('IELTS chỉ có thang điểm 0–9.0.');
+                    if (Math.abs(score * 2 - Math.round(score * 2)) > 1e-8) return invalid('IELTS cần nhập điểm theo bước 0.5.');
+                }
+                const passed = score >= limits[type];
                 return { valid:true, passed, message:passed ? 'Đạt chuẩn B1.2 ('+type+' ≥ '+limits[type]+')' : 'Chưa đạt chuẩn B1.2 ('+type+' ≥ '+limits[type]+')' };
             }
             const btnCheckCert = document.getElementById('btn-check-cert');
