@@ -681,8 +681,8 @@ const CTDT_KHMT_2025 = {
       "name": "Hệ thống máy tính",
       "tc": 2,
       "type": "BB",
-      "lt": 45,
-      "th": 30,
+      "lt": 30,
+      "th": 0,
       "bt": 0,
       "req": "",
       "section": "",
@@ -1511,6 +1511,43 @@ function checkCertificateDate(rawIssue, rawSubmit) {
     return {valid:true, message:'Chứng chỉ còn hiệu lực tại ngày nộp ' + fmt(submitted.date) + ' (hạn cuối: ' + expiresText + ').', expiresText};
 }
 
+function evaluateCertificate(type, rawScore) {
+    const value = String(rawScore ?? '').trim();
+    const invalid = message => ({ valid:false, passed:false, message });
+    if (!value) return invalid('Vui lòng nhập điểm chứng chỉ!');
+    if (/-\s*\d/.test(value)) return invalid('Điểm chứng chỉ không được là số âm!');
+    if (type === 'TOEIC 4 kỹ năng') {
+        const match = value.match(/^(\d+)\s*[,;\/]\s*(\d+)$/);
+        if (!match) return invalid('Nhập hai tổng điểm TOEIC: Nghe-Đọc, Nói-Viết (VD: 316, 181).');
+        const listening = Number(match[1]), speaking = Number(match[2]);
+        if (listening > 990 || speaking > 400) return invalid('Điểm vượt thang TOEIC: Nghe-Đọc tối đa 990, Nói-Viết tối đa 400.');
+        const passed = listening >= 316 && speaking >= 181;
+        return { valid:true, passed, message:passed ? 'Đạt chuẩn B1.2' : 'Chưa đạt: yêu cầu Nghe-Đọc 316 và Nói-Viết 181.' };
+    }
+    if (!/^\d+(?:[.,]\d+)?$/.test(value)) return invalid('Điểm phải là số hợp lệ không âm.');
+    const score = Number(value.replace(',', '.'));
+    if (type === 'VSTEP') {
+        if (score > 10) return invalid('VSTEP có thang điểm từ 0 đến 10.');
+        if (Math.abs(score * 2 - Math.round(score * 2)) > 1e-8) return invalid('VSTEP cần nhập điểm theo bước 0.5.');
+        return { valid:true, passed:false, message:'Điểm VSTEP hợp lệ, nhưng Điều 6 được cung cấp chưa quy định ngưỡng công nhận VSTEP cho chuẩn B1.2.' };
+    }
+    const limits = {'VNU-EPT':176,'IELTS':4,'TOEFL (iBT)':32,'PET':80};
+    if (!Object.prototype.hasOwnProperty.call(limits,type)) return invalid('Chứng chỉ chưa thuộc danh sách Điều 6.');
+    if (type === 'VNU-EPT' && score > 400) return invalid('VNU-EPT có thang điểm tối đa 400.');
+    if (type === 'TOEFL (iBT)' && (score>120 || !Number.isInteger(score))) return invalid('TOEFL iBT phải là điểm nguyên từ 0 đến 120.');
+    if (type === 'PET' && score > 170) return invalid('PET có thang điểm tối đa 170.');
+    if (type === 'IELTS') {
+        if (score > 9) return invalid('IELTS chỉ có thang điểm 0–9.0.');
+        if (Math.abs(score * 2 - Math.round(score * 2)) > 1e-8) return invalid('IELTS cần nhập điểm theo bước 0.5.');
+    }
+    const passed = score >= limits[type];
+    return { valid:true, passed, message:passed ? 'Đạt chuẩn B1.2 ('+type+' ≥ '+limits[type]+')' : 'Chưa đạt chuẩn B1.2 ('+type+' ≥ '+limits[type]+')' };
+}
+
+function verifiedForeignLanguage(user) {
+    const c=user?.stats?.graduationOverrides?.foreign_lang;
+    return Boolean(c?.certType && evaluateCertificate(c.certType,c.certScore).passed && checkCertificateDate(c.certDate,c.certSubmitDate).valid);
+}
 function exportGraduationReport(user) {
     const grades=getLatestCourses(user.stats?.gradesList || []);
     const m=getCourseMetrics(grades), target=user.stats?.totalCredits || 138;
@@ -1519,23 +1556,7 @@ function exportGraduationReport(user) {
     const status=(id,auto)=>{
       if (id === 'credits' || id === 'gpa_rank') return auto;
       const custom=overrides[id];
-      if (id==='foreign_lang' && custom?.certType) {
-          const scores=String(custom.certScore ?? '').trim();
-          const type=custom.certType;
-          let scoreOk=false;
-          if (type==='TOEIC 4 kỹ năng') {
-              const m=scores.match(/^(\d+)\s*[,;\/]\s*(\d+)$/);
-              scoreOk=!!m && Number(m[1])>=316 && Number(m[1])<=990 && Number(m[2])>=181 && Number(m[2])<=400;
-          } else {
-              const min={'VNU-EPT':176,'IELTS':4,'TOEFL (iBT)':32,'PET':80};
-              const max={'VNU-EPT':400,'IELTS':9,'PET':170,'TOEFL (iBT)':120};
-              const v=Number(scores.replace(',','.'));
-              scoreOk=Object.prototype.hasOwnProperty.call(min,type) && /^\d+(?:[.,]\d+)?$/.test(scores) &&
-                  v>=min[type] && (max[type]===undefined || v<=max[type]) &&
-                  (type!=='IELTS' || Number.isInteger(v*2)) && (type!=='TOEFL (iBT)' || Number.isInteger(v));
-          }
-          return scoreOk && checkCertificateDate(custom.certDate, custom.certSubmitDate).valid;
-      }
+      if (id==='foreign_lang' && custom?.certType) return verifiedForeignLanguage(user);
       return custom?.mode==='done'?true:custom?.mode==='pending'?false:auto;
     };
     const conditions=[
@@ -1577,7 +1598,7 @@ function exportGraduationReport(user) {
     const done=()=>{holder.remove();if(btn){btn.disabled=false;btn.innerHTML=btn.dataset.previousText||'Xuất file báo cáo';delete btn.dataset.previousText;}};
     if(typeof html2pdf==='undefined'){
         done();
-        alert('Không tải được thư viện tạo PDF. Vui lòng kiểm tra kết nối Internet rồi tải lại trang Dashboard.');
+        alert('Không tải được thư viện tạo PDF. Vui lòng kiểm tra thư mục vendor rồi tải lại trang Dashboard.');
         return Promise.resolve();
     }
     return html2pdf().set({
@@ -1897,6 +1918,7 @@ if (window.location.pathname.includes('program.html')) {
 
         for (const [id,group] of [[1,'politics'],[2,'skills'],[3,'math'],[4,'it'],[6,'foundation'],[7,'major']]) modCredits[id]=getCurriculumCredits(gradesList,group);
         modCredits[5] = getCurriculumCredits(gradesList,'language');
+        if (verifiedForeignLanguage(currentUser)) { const el=document.getElementById('percent-mod-5'); if(el) { const note=document.createElement('small'); note.style.cssText='display:block;color:#15803d;font-size:11px'; note.textContent='Đạt chuẩn ngoại ngữ bằng chứng chỉ'; el.parentElement.appendChild(note); } }
         const graduationDone = getCurriculumCredits(gradesList,'graduation');
         const graduationPercent = Math.min(100, Math.round(graduationDone/10*100));
         const gfill=document.getElementById('fill-mod-8'),gtext=document.getElementById('percent-mod-8');
@@ -4091,6 +4113,7 @@ if (window.location.pathname.includes('module-language.html')) {
 
         const gradesList = getLatestCourses((currentUser.stats && currentUser.stats.gradesList) ? currentUser.stats.gradesList : []);
         const tbody = document.getElementById('course-table-body-lang');
+        if (verifiedForeignLanguage(currentUser) && tbody) {const note=document.createElement('caption');note.style.cssText='caption-side:top;text-align:left;padding:12px;color:#15803d;font-weight:600';note.textContent='Đã đạt chuẩn đầu ra ngoại ngữ bằng chứng chỉ. Tín chỉ Anh văn chỉ ghi nhận theo bảng điểm hoặc quyết định miễn/công nhận của trường.';tbody.closest('table').prepend(note);}
         
         let passedCreds = 0, passedCourses = 0, failedCourses = 0;
         const totalCreds = 20; 
@@ -4412,6 +4435,11 @@ if (window.location.pathname.includes('module-major.html')) {
         group3NoteCell.textContent = 'Chọn học phần hợp lệ tại Phụ lục 1 nếu tổng tín chỉ của Nhóm 1 và Nhóm 2 chưa đủ 34. Xem hướng dẫn chi tiết bên dưới bảng.';
         group3NoteRow.appendChild(group3NoteCell);
         tbody.appendChild(group3NoteRow);
+        const chosenCodes=new Set(courseData.map(c=>c.code));
+        for(const g of gradesList.filter(g=>VERIFIED_FREE_CODES.has(g.code)&&!chosenCodes.has(g.code)&&CTDT_COURSE_INDEX[g.code]?.group==='major')) {
+            const c=CTDT_COURSE_INDEX[g.code];const tr=document.createElement('tr');
+            for(const value of ['—',g.code,c.name,getStandardCredit(g.code,g.tc),'TC',c.lt??'—',c.th??'—',c.bt??'—',k2025PriorLabel(c),isPassedCourse(g)?'ĐẠT':isFailedCourse(g)?'CHƯA ĐẠT':'Đang học']){const td=document.createElement('td');td.textContent=value;tr.appendChild(td);} tbody.appendChild(tr);
+        }
 
         // 1. Cập nhật thanh tiến độ góc phải (đồng bộ với trang Khung CTĐT)
         passedCreds = getCurriculumCredits(gradesList, "major");
@@ -4797,38 +4825,6 @@ if (window.location.pathname.includes('graduation.html')) {
                 });
             }
 
-            function evaluateCertificate(type, rawScore) {
-                const value = String(rawScore ?? '').trim();
-                const invalid = message => ({ valid:false, passed:false, message });
-                if (!value) return invalid('Vui lòng nhập điểm chứng chỉ!');
-                if (/-\s*\d/.test(value)) return invalid('Điểm chứng chỉ không được là số âm!');
-                if (type === 'TOEIC 4 kỹ năng') {
-                    const match = value.match(/^(\d+)\s*[,;\/]\s*(\d+)$/);
-                    if (!match) return invalid('Nhập hai tổng điểm TOEIC: Nghe-Đọc, Nói-Viết (VD: 316, 181).');
-                    const listening = Number(match[1]), speaking = Number(match[2]);
-                    if (listening > 990 || speaking > 400) return invalid('Điểm vượt thang TOEIC: Nghe-Đọc tối đa 990, Nói-Viết tối đa 400.');
-                    const passed = listening >= 316 && speaking >= 181;
-                    return { valid:true, passed, message:passed ? 'Đạt chuẩn B1.2' : 'Chưa đạt: yêu cầu Nghe-Đọc 316 và Nói-Viết 181.' };
-                }
-                if (!/^\d+(?:[.,]\d+)?$/.test(value)) return invalid('Điểm phải là số hợp lệ không âm.');
-                const score = Number(value.replace(',', '.'));
-                if (type === 'VSTEP') {
-                    if (score > 10) return invalid('VSTEP có thang điểm từ 0 đến 10.');
-                    if (Math.abs(score * 2 - Math.round(score * 2)) > 1e-8) return invalid('VSTEP cần nhập điểm theo bước 0.5.');
-                    return { valid:true, passed:false, message:'Điểm VSTEP hợp lệ, nhưng Điều 6 được cung cấp chưa quy định ngưỡng công nhận VSTEP cho chuẩn B1.2.' };
-                }
-                const limits = {'VNU-EPT':176,'IELTS':4,'TOEFL (iBT)':32,'PET':80};
-                if (!Object.prototype.hasOwnProperty.call(limits,type)) return invalid('Chứng chỉ chưa thuộc danh sách Điều 6.');
-                if (type === 'VNU-EPT' && score > 400) return invalid('VNU-EPT có thang điểm tối đa 400.');
-                if (type === 'TOEFL (iBT)' && (score>120 || !Number.isInteger(score))) return invalid('TOEFL iBT phải là điểm nguyên từ 0 đến 120.');
-                if (type === 'PET' && score > 170) return invalid('PET có thang điểm tối đa 170.');
-                if (type === 'IELTS') {
-                    if (score > 9) return invalid('IELTS chỉ có thang điểm 0–9.0.');
-                    if (Math.abs(score * 2 - Math.round(score * 2)) > 1e-8) return invalid('IELTS cần nhập điểm theo bước 0.5.');
-                }
-                const passed = score >= limits[type];
-                return { valid:true, passed, message:passed ? 'Đạt chuẩn B1.2 ('+type+' ≥ '+limits[type]+')' : 'Chưa đạt chuẩn B1.2 ('+type+' ≥ '+limits[type]+')' };
-            }
             const btnCheckCert = document.getElementById('btn-check-cert');
             if (btnCheckCert) {
                 btnCheckCert.addEventListener('click', () => {
