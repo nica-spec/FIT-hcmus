@@ -2,7 +2,8 @@
  * All libraries (Chart.js, SheetJS, html2pdf.js, Font Awesome, Montserrat) are bundled locally in ./vendor/.
  * Academic records stay in the browser's localStorage; no grade data is sent externally.
  */
-const OFFLINE_VERSION = 'fit-hcmus-offline-20261125-review-v4';
+const CACHE_SCOPE = 'fit-hcmus-scope-' + encodeURIComponent(self.registration.scope) + ':';
+const OFFLINE_VERSION = CACHE_SCOPE + '20261125-review-v5';
 const SHELL_CACHE = OFFLINE_VERSION + '-shell';
 const RUNTIME_CACHE = OFFLINE_VERSION + '-runtime';
 const APP_SHELL = [
@@ -62,7 +63,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const existing = await caches.keys();
-    await Promise.all(existing.filter(name => name.startsWith('fit-hcmus-offline-') &&
+    await Promise.all(existing.filter(name => name.startsWith(CACHE_SCOPE) &&
       name !== SHELL_CACHE && name !== RUNTIME_CACHE).map(name => caches.delete(name)));
     await self.clients.claim();
   })());
@@ -77,10 +78,11 @@ async function networkFirst(request, navigation = false) {
     }
     return response;
   } catch (error) {
-    const cached = await caches.match(request, { ignoreSearch: true });
+    const shell = await caches.open(SHELL_CACHE);
+    const cached = await runtime.match(request,{ignoreSearch:true}) || await shell.match(request,{ignoreSearch:true});
     if (cached) return cached;
     if (navigation) {
-      const index = await caches.match('./index.html');
+      const index = await shell.match('./index.html');
       if (index) return index;
     }
     return Response.error();
@@ -91,7 +93,7 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET' || !/^https?:$/.test(new URL(request.url).protocol)) return;
   const url = new URL(request.url);
-  if (url.origin === self.location.origin) {
+  if (url.origin === self.location.origin && url.href.startsWith(self.registration.scope)) {
     event.respondWith(networkFirst(request, request.mode === 'navigate'));
   }
 });
