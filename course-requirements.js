@@ -52,7 +52,7 @@
     if (rows.some(isPassed)) {
       return { label: 'Đã đạt', color: '#15803d', state: 'passed' };
     }
-    if (rows.length) {
+    if (rows.some(g => typeof hasCourseScore === 'function' && hasCourseScore(g))) {
       return { label: 'Đã học nhưng chưa đạt', color: '#b45309', state: 'studied' };
     }
     return { label: 'Chưa học', color: '#b91c1c', state: 'missing' };
@@ -99,10 +99,10 @@
         </ul>
         ${missing.length ? `<div style="margin-top:10px;font-weight:600;color:#1d4ed8">Đề nghị học: ${missing.map(item => escapeHTML(item.id) + ' — ' + escapeHTML(dict[item.id] || 'Chưa có tên trong danh mục')).join('; ')}</div>` : ''}` : '<div>Không có học phần đề nghị học trước trong dữ liệu K2025.</div>'}
       ${registration.applies ? `<div style="margin-top:9px;padding:9px 10px;border-radius:8px;background:${blocking?'#fef2f2':'#ecfdf5'};color:${blocking?'#991b1b':'#166534'};font-weight:700">
-        ${blocking ? 'Chưa cho thêm học phần chuyên ngành: cần học các môn ' + registration.missing.map(id=>escapeHTML(id)).join(', ') + ' trước.' : 'Đã đáp ứng điều kiện học trước do ứng dụng kiểm tra cho chuyên ngành đã chọn.'}
+        ${blocking ? 'Lưu ý: đề nghị học các môn ' + registration.missing.map(id=>escapeHTML(id)).join(', ') + ' trước.' : 'Đã đáp ứng điều kiện học trước do ứng dụng kiểm tra cho chuyên ngành đã chọn.'}
       </div>` : ''}
       <small style="display:block;margin-top:8px;color:#64748b">
-        Tài liệu K2025 dùng thuật ngữ “đề nghị học trước”, không khẳng định môn tiên quyết bắt buộc. Việc chặn thêm môn chuyên ngành khi chưa học là quy tắc riêng theo yêu cầu người dùng; các trường hợp được ghi “không bắt buộc” hoặc “có thể học song song” không bị chặn.
+        Tài liệu K2025 dùng thuật ngữ “đề nghị học trước”, không khẳng định môn tiên quyết bắt buộc. Danh sách chỉ dùng để cảnh báo, không chặn nhập điểm.
       </small>`;
   }
   input.addEventListener('input', render);

@@ -3,9 +3,10 @@
     function init() {
         const nav = document.querySelector('.navbar');
         const sidebar = document.querySelector('.dashboard-wrapper > .sidebar');
-        if (!nav || !sidebar || document.getElementById('mobile-nav-toggle')) return;
+        if (!nav || !sidebar) return;
         sidebar.id = sidebar.id || 'app-mobile-sidebar';
-        const toggle = document.createElement('button');
+        const toggle = document.getElementById('mobile-nav-toggle') || document.createElement('button');
+        toggle.removeAttribute('onclick');
         toggle.type = 'button';
         toggle.id = 'mobile-nav-toggle';
         toggle.className = 'mobile-nav-toggle';
@@ -13,7 +14,7 @@
         toggle.setAttribute('aria-expanded', 'false');
         toggle.setAttribute('aria-label', 'Mở menu điều hướng');
         toggle.innerHTML = '<span aria-hidden="true">☰</span><span class="mobile-nav-toggle-label">Menu</span>';
-        nav.appendChild(toggle);
+        if (!toggle.isConnected) nav.appendChild(toggle);
         const setOpen = open => {
             sidebar.classList.toggle('mobile-nav-open', open);
             toggle.setAttribute('aria-expanded', String(open));
@@ -49,8 +50,8 @@
         const btn = document.getElementById('btn-prepare-offline');
         if (window.location.protocol === 'file:' || !('serviceWorker' in navigator) || !window.isSecureContext) {
             if (status) {
-                status.textContent = 'Đã sẵn sàng sử dụng ngoại tuyến 100% (toàn bộ thư viện và dữ liệu đã được tích hợp cục bộ trên thiết bị).';
-                status.style.color = '#15803d';
+                status.textContent = location.protocol === 'file:' ? 'Đang mở tài nguyên cục bộ; không sử dụng Service Worker.' : 'Môi trường này không hỗ trợ Service Worker. Cần HTTPS hoặc localhost để chuẩn bị ngoại tuyến.';
+                status.style.color = '#b45309';
             }
             if (btn) btn.style.display = 'none';
         }
@@ -1138,9 +1139,9 @@ function checkMajorRegistrationPrior(courseCode, grades) {
 }
 function majorRegistrationPriorMessage(check) {
     if (check.allowed) return '';
-    return 'Chưa thể đăng ký học phần chuyên ngành. Cần học trước: ' +
+    return 'Lưu ý: học phần đề nghị học trước chưa có điểm: ' +
         check.missing.map(code => code + ' — ' + (courseDictionary[code] || CTDT_COURSE_INDEX[code]?.name || 'Học phần chưa xác định')).join('; ') +
-        '. (Quy tắc chặn của ứng dụng dựa trên danh sách ĐỀ NGHỊ học trước K2025, không phải điều kiện tiên quyết bắt buộc do trường công bố.)';
+        '. (Đây chỉ là đề nghị học trước, không phải điều kiện tiên quyết bắt buộc.)';
 }
 
 // Nguồn K2025 chỉ liệt kê học phần ĐỀ NGHỊ học trước, không xác nhận tiên quyết bắt buộc.
@@ -1170,7 +1171,7 @@ function getSelectedMajorCourses() {
         const base = Object.values(CTDT_KHMT_2025).flat().find(c => c.code === code);
         return base ? {...base, section} : {
             code, name: KHMT_MAJOR_NAMES_BY_CODE[code] || code,
-            tc:4, type:'TC', lt:45, th:30, bt:0, req:'', section, project:0
+            tc:null, type:'TC', lt:'—', th:'—', bt:'—', req:'', section, project:0
         };
     });
     return [...build(groups.core,'major_core'), ...build(groups.elect,'major_elective')];
@@ -1181,7 +1182,7 @@ const CTDT_COURSE_INDEX = Object.fromEntries(Object.entries(CTDT_KHMT_2025).flat
 for (const spec of Object.values(KHMT_MAJOR_LISTS)) {
     for (const code of (spec.core + ' ' + spec.elect).split(' ').filter(Boolean)) {
         if (!CTDT_COURSE_INDEX[code]) {
-            CTDT_COURSE_INDEX[code] = {code, name:KHMT_MAJOR_NAMES_BY_CODE[code] || code, tc:4, group:'major'};
+            CTDT_COURSE_INDEX[code] = {code, name:KHMT_MAJOR_NAMES_BY_CODE[code] || code, tc:null, group:'major'};
         }
     }
 }
@@ -1195,13 +1196,18 @@ function getCurriculumCredits(grades,group){
  if(group==='major') {
      if (!selectedK2025Major()) return 0;
      const chosen = getSelectedMajorCourses();
-     const earned = list => list.reduce((a,c)=>a+(byCode.has(c.code)?c.tc:0),0);
+     const earned = list => list.reduce((a,c)=>a+(byCode.has(c.code)?getStandardCredit(c.code,byCode.get(c.code).tc):0),0);
      const core = earned(chosen.filter(c=>c.section==='major_core'));
      const electives = earned(chosen.filter(c=>c.section==='major_elective'));
-     return Math.min(34,Math.min(16,core)+Math.min(18,electives+Math.max(0,core-16)));
+     return Math.min(34,Math.min(16,core)+Math.min(8,electives)+Math.min(10,Math.max(0,core-16)+Math.max(0,electives-8)));
  }
  if(group==='graduation') return Math.min(10, Math.max(...source.filter(c=>c.section==='grad_full').map(c=>byCode.has(c.code)?10:0),0, Math.min(6,sum(source.filter(c=>c.section==='grad_project')))+Math.min(4,sum(source.filter(c=>c.section==='grad_seminar')))));
  return Math.min(CTDT_REQUIREMENTS[group]||Infinity,sum(source));
+}
+function getCurriculumProgress(grades) {
+    const blocks = Object.fromEntries(['politics','skills','math','it','foundation','major','graduation'].map(g=>[g,getCurriculumCredits(grades,g)]));
+    const total=Object.values(blocks).reduce((a,b)=>a+b,0);
+    return {blocks,total,complete:Object.keys(blocks).every(g=>blocks[g]>=CTDT_REQUIREMENTS[g])};
 }
 
 // Danh sách số tín chỉ chuẩn theo mã học phần
@@ -1271,17 +1277,17 @@ const courseDictionary = {
 // Bổ sung tên/tín chỉ các môn thuộc bốn định hướng khác để bảng điểm nhận mã hợp lệ.
 Object.entries(KHMT_MAJOR_NAMES_BY_CODE).forEach(([code,name]) => {
     if (!Object.prototype.hasOwnProperty.call(courseDictionary,code)) courseDictionary[code]=name;
-    if (!Object.prototype.hasOwnProperty.call(courseCredits,code)) courseCredits[code]=4;
+
 });
 // Ưu tiên thông tin được đối chiếu từ CTĐT K2025, không thay đổi dữ liệu điểm của sinh viên.
-Object.entries(CTDT_COURSE_INDEX).forEach(([code,info])=>{courseCredits[code]=info.tc;courseDictionary[code]=info.name;});
+Object.entries(CTDT_COURSE_INDEX).forEach(([code,info])=>{if (Number.isFinite(info.tc)) courseCredits[code]=info.tc;courseDictionary[code]=info.name;});
 // Giữ mã cũ để bảng điểm đã nhập không tự biến mất; mã chính thức mới được dùng ở danh mục.
 const CTDT_LEGACY_CODES = {'BAA00105':'BAA00003','BAA00011':'BAA00004','CSC14004_AI':'CSC14003'};
 function canonicalCurriculumCode(code){return CTDT_LEGACY_CODES[String(code||'').trim().toUpperCase()]||String(code||'').trim().toUpperCase();}
 
 // Hàm tiện ích lấy số tín chỉ chuẩn của một môn học
 function getStandardCredit(code, fallbackTc) {
-    const codeUpper = (code || "").trim().toUpperCase();
+    const codeUpper = canonicalCurriculumCode(code);
     if (courseCredits[codeUpper] !== undefined) {
         return courseCredits[codeUpper];
     }
@@ -1311,9 +1317,13 @@ function validateImportedGrades(grades) {
         const code = String(item?.code ?? '').trim();
         const label = `Dòng ${line}${code ? ` (${code})` : ''}`;
         if (!code) errors.push(`${label}: thiếu mã môn`);
+        if (!(Number.isInteger(Number(item?.tc)) && Number(item.tc)>0)) errors.push(`${label}: số tín chỉ không hợp lệ`);
+        if (item?.scoresList !== undefined && !Array.isArray(item.scoresList)) errors.push(`${label}: điểm thành phần không hợp lệ`);
+        if (item?.bonusScore != null && (!isValidScoreInput(item.bonusScore.score) || !Number.isFinite(Number(item.bonusScore.weight)) || Number(item.bonusScore.weight)<0)) errors.push(`${label}: điểm cộng không hợp lệ`);
         if (!isValidScoreInput(item?.score)) errors.push(`${label}: điểm tổng kết phải từ 0 đến 10`);
         if (Array.isArray(item?.scoresList)) {
             item.scoresList.forEach((entry, j) => {
+                if (!Number.isFinite(Number(entry?.weight)) || Number(entry.weight)<0 || Number(entry.weight)>100) errors.push(`${label}, cột ${j+1}: trọng số không hợp lệ`);
                 if (!isValidScoreInput(entry?.score)) errors.push(`${label}, cột điểm ${j + 1}: điểm phải từ 0 đến 10`);
             });
         }
@@ -1361,7 +1371,7 @@ function getLatestCourses(grades) {
     const byCode = new Map();
     (grades || []).forEach((g, i) => {
         if (!g || !g.code) return;
-        const code = String(g.code).trim().toUpperCase();
+        const code = canonicalCurriculumCode(g.code);
         if (byCode.has(code)) byCode.delete(code);
         byCode.set(code, {...g, code, status: getCourseStatus(g)});
     });
@@ -1382,21 +1392,22 @@ function getCourseMetrics(grades) {
     const courses = getLatestCourses(grades).filter(g => !isExcludedCourse(g));
     const passed = courses.filter(isPassedCourse);
     const attempted = courses.filter(g => hasCourseScore(g) && (isPassedCourse(g) || isFailedCourse(g)));
-    const earnedCredits = passed.reduce((sum,g) => sum + getStandardCredit(g.code,g.tc), 0);
+    const passedCredits = passed.reduce((sum,g) => sum + getStandardCredit(g.code,g.tc), 0);
+    const earnedCredits = getCurriculumProgress(grades).total;
     const passedWeighted = passed.reduce((sum,g) => sum + getStandardCredit(g.code,g.tc) * Number(g.score), 0);
     const attemptedCredits = attempted.reduce((sum,g) => sum + getStandardCredit(g.code,g.tc), 0);
     const attemptedWeighted = attempted.reduce((sum,g) => sum + getStandardCredit(g.code,g.tc) * Number(g.score), 0);
     const attemptedWeighted4 = attempted.reduce((sum,g) => sum + getStandardCredit(g.code,g.tc) * convertScoreTo4(g.score), 0);
     const passedWeighted4 = passed.reduce((sum,g) => sum + getStandardCredit(g.code,g.tc) * convertScoreTo4(g.score), 0);
     return {
-        earnedCredits, passedCredits: earnedCredits, passedWeighted, passedWeighted4,
+        earnedCredits, passedCredits, passedWeighted, passedWeighted4,
         attemptedCredits, attemptedWeighted, attemptedWeighted4,
         // GPA ở Bảng điểm và GPA học kỳ: tất cả học phần có điểm, kể cả môn rớt.
         gpa10: attemptedCredits ? attemptedWeighted / attemptedCredits : 0,
         gpa4: attemptedCredits ? attemptedWeighted4 / attemptedCredits : 0,
         // GPA tích lũy ở Dashboard/Mục tiêu: chỉ học phần đạt (>= 5.0).
-        passedGPA10: earnedCredits ? passedWeighted / earnedCredits : 0,
-        passedGPA4: earnedCredits ? passedWeighted4 / earnedCredits : 0
+        passedGPA10: passedCredits ? passedWeighted / passedCredits : 0,
+        passedGPA4: passedCredits ? passedWeighted4 / passedCredits : 0
     };
 }
 // Nhóm chương trình đào tạo dùng để phân rã biểu đồ tín chỉ trên Dashboard.
@@ -1407,6 +1418,7 @@ function getDashboardCourseGroup(g) {
     if (['politics','skills','math','it'].includes(group)) return 'general';
     if (group==='foundation') return 'foundation';
     if (group==='major') return 'major';
+    if (group==='graduation') return 'graduation';
     // Học phần tốt nghiệp không bị gán nhầm vào chuyên ngành.
     return 'other';
 }
@@ -1415,6 +1427,7 @@ function getDashboardCreditBreakdown(grades, totalCredits) {
         general: { credits: 0, courses: 0 },
         foundation: { credits: 0, courses: 0 },
         major: { credits: 0, courses: 0 },
+        graduation: { credits: 0, courses: 0 },
         other: { credits: 0, courses: 0 }
     };
     getLatestCourses(grades).forEach(g => {
@@ -1425,7 +1438,11 @@ function getDashboardCreditBreakdown(grades, totalCredits) {
         result[group].credits += credits;
         result[group].courses++;
     });
-    const earned = Object.values(result).reduce((sum, item) => sum + item.credits, 0);
+    const progress=getCurriculumProgress(grades);
+    result.general.credits=progress.blocks.politics+progress.blocks.skills+progress.blocks.math+progress.blocks.it;
+    for (const group of ['foundation','major','graduation']) result[group].credits=progress.blocks[group];
+    result.other.credits=0;
+    const earned = progress.total;
     result.remaining = Math.max(0, totalCredits - earned);
     return result;
 }
@@ -1435,7 +1452,7 @@ function getDashboardCreditBreakdown(grades, totalCredits) {
 function getRequiredGoalGPA(metrics, targetGPA, targetCredits) {
     const remainingCredits = Math.max(0, targetCredits - metrics.earnedCredits);
     if (!remainingCredits) return null;
-    return (targetGPA * (metrics.earnedCredits + remainingCredits) - metrics.passedWeighted) / remainingCredits;
+    return (targetGPA * (metrics.passedCredits + remainingCredits) - metrics.passedWeighted) / remainingCredits;
 }
 function escapeReportHTML(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1492,7 +1509,7 @@ function exportGraduationReport(user) {
     const overrides=user.stats?.graduationOverrides || {};
     const passCodes=new Set(grades.filter(isPassedCourse).map(g=>String(g.code||'').trim().toUpperCase()));
     const status=(id,auto)=>{
-      if (id === 'credits') return auto;
+      if (id === 'credits' || id === 'gpa_rank') return auto;
       const custom=overrides[id];
       if (id==='foreign_lang' && custom?.certType) {
           const scores=String(custom.certScore ?? '').trim();
@@ -1517,7 +1534,7 @@ function exportGraduationReport(user) {
       ['Chuẩn đầu ra ngoại ngữ',status('foreign_lang',passCodes.has('ADD00034'))],
       ['Hoàn thành GDQP-AN',status('gdqp',passCodes.has('BAA00030'))],
       ['Hoàn thành GDTC',status('gdtc',passCodes.has('BAA00021')&&passCodes.has('BAA00022'))],
-      ['Đủ tín chỉ tích lũy',status('credits',m.earnedCredits>=target)],
+      ['Đủ tín chỉ tích lũy',status('credits',getCurriculumProgress(grades).complete)],
       ['GPA đạt từ 5.0',status('gpa_rank',m.passedCredits>0&&m.passedGPA10>=5)]
     ];
     const eligible=conditions.every(c=>c[1]);
@@ -1571,7 +1588,7 @@ function mergeGradesReplacingOld(oldGrades, incomingGrades) {
     const map = new Map();
     for (const g of [...(oldGrades || []), ...(incomingGrades || [])]) {
         if (!g || typeof g !== 'object') continue;
-        const code = String(g.code || '').trim().toUpperCase();
+        const code = canonicalCurriculumCode(g.code);
         if (!code) continue;
         const clean = { ...g, code, score: hasCourseScore(g) ? roundFinalScore(g.score) : g.score, status: getCourseStatus(g) };
         if (map.has(code)) map.delete(code);
@@ -1717,6 +1734,7 @@ function registerUser() {
         fullname: fullname,
         studentId: studentId,
         password: hashPassword(password),
+        major: 'Khoa học máy tính',
         stats: {
             credits: 0,
             totalCredits: 138,
@@ -1752,7 +1770,7 @@ function loginUser() {
     }
 
     const users = getUsers();
-    const userFound = users.find(user => user.fullname === usernameInput || user.studentId === usernameInput);
+    const userFound = users.find(user => user.studentId === usernameInput);
 
     if (!userFound) {
         alert('Tài khoản không tồn tại! Vui lòng đăng ký.');
@@ -1774,68 +1792,6 @@ function loginUser() {
 
     alert(`Đăng nhập thành công! Chào mừng ${userFound.fullname}`);
     window.location.href = 'dashboard.html';
-}
-
-// -------------------------------------------------------------
-// 3. HIỂN THỊ DỮ LIỆU DASHBOARD (dashboard.html)
-// -------------------------------------------------------------
-if (window.location.pathname.includes('dashboard.html')) {
-    const currentUser = getCurrentUser();
-
-    if (!currentUser) {
-        alert('Vui lòng đăng nhập để truy cập!');
-        window.location.href = 'index.html';
-    } else {
-        document.getElementById('display-fullname').textContent = currentUser.fullname;
-        document.getElementById('display-mssv').textContent = `MSSV: ${currentUser.studentId}`;
-
-        const stats = currentUser.stats || {};
-        const totalCreds = stats.totalCredits || 138;
-        const currentCreds = stats.credits || 0;
-
-        document.getElementById('val-credits').textContent = `${currentCreds}/${totalCreds}`;
-        document.getElementById('val-gpa').textContent = (stats.gpa || 0).toFixed(1);
-        document.getElementById('val-rank').textContent = stats.rank || "Chưa xếp loại";
-        document.getElementById('val-passed').textContent = stats.passed || 0;
-        document.getElementById('val-failed').textContent = stats.failed || 0;
-
-        const breakdown = stats.breakdown || { đạiCương: 0, cơSởNgành: 0, chuyênNgành: 0, cònLại: totalCreds };
-        const ctxDonut = document.getElementById('creditChart').getContext('2d');
-        new Chart(ctxDonut, {
-            type: 'doughnut',
-            data: {
-                labels: ['Đại cương', 'Cơ sở ngành', 'Chuyên ngành', 'Còn lại'],
-                datasets: [{
-                    data: [
-                        breakdown.đạiCương || 0, 
-                        breakdown.cơSởNgành || 0, 
-                        breakdown.chuyênNgành || 0, 
-                        breakdown.cònLại || totalCreds
-                    ],
-                    backgroundColor: ['#4285F4', '#EA4335', '#FBBC05', '#E0E0E0'],
-                    borderWidth: 0
-                }]
-            },
-            options: { cutout: '72%', plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
-        });
-
-        const ctxLine = document.getElementById('gpaTrendChart').getContext('2d');
-        new Chart(ctxLine, {
-            type: 'line',
-            data: {
-                labels: ['1', '2', '3', '4', '5'],
-                datasets: [{
-                    data: stats.gpaTrend || [0, 0, 0, 0, 0],
-                    borderColor: '#4285f4', backgroundColor: '#4285f4', borderWidth: 3, tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: { y: { min: 0, max: 10, ticks: { stepSize: 2.00 } }, x: { grid: { display: false } } },
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
 }
 
 // -------------------------------------------------------------
@@ -2071,7 +2027,7 @@ if (window.location.pathname.includes('grades.html')) {
                 'Số tín chỉ': getStandardCredit(g.code, g.tc),
                 'Điểm (Hệ 10)': Number(g.score),
                 'Trạng thái': isPassedCourse(g) ? 'Đạt' : 'Chưa đạt',
-                'Ghi chú': g.note || ''
+                'Ghi chú': g.note || '', 'Điểm thành phần (JSON)': JSON.stringify(g.scoresList ?? [{weight:100,score:g.score}]), 'Điểm cộng (JSON)': JSON.stringify(g.bonusScore ?? null)
             }));
             const worksheet = XLSX.utils.json_to_sheet(excelData);
             worksheet['!cols'] = [{wch:6},{wch:12},{wch:10},{wch:15},{wch:36},{wch:13},{wch:17},{wch:15},{wch:20}];
@@ -2140,8 +2096,9 @@ if (window.location.pathname.includes('grades.html')) {
                                 score: finalScore,
                                 status: roundFinalScore(finalScore) >= 5.0 ? "Đ" : "CĐ",
                                 note: row["Ghi chú"] || "",
-                                colsCount: 1,
-                                scoresList: [{ weight: 100, score: finalScore }]
+                                colsCount: row['Điểm thành phần (JSON)'] ? JSON.parse(row['Điểm thành phần (JSON)']).length : 1,
+                                scoresList: row['Điểm thành phần (JSON)'] ? JSON.parse(row['Điểm thành phần (JSON)']) : [{ weight: 100, score: finalScore }],
+                                 bonusScore: row['Điểm cộng (JSON)'] ? JSON.parse(row['Điểm cộng (JSON)']) : null
                             };
                         });
                     } else {
@@ -2281,8 +2238,8 @@ if (window.location.pathname.includes('grades.html')) {
             container.replaceChildren();
             summary.replaceChildren();
             const metrics = getCourseMetrics(allGrades);
-            const passed = allGrades.filter(isPassedCourse).length;
-            const failed = allGrades.filter(isFailedCourse).length;
+            const passed = allGrades.filter(g=>!isExcludedCourse(g)&&isPassedCourse(g)).length;
+            const failed = allGrades.filter(g=>!isExcludedCourse(g)&&isFailedCourse(g)).length;
             const stats = [
                 ['GPA bảng điểm', metrics.attemptedCredits ? metrics.gpa10.toFixed(2) : '—'],
                 ['Tín chỉ tích lũy', String(metrics.earnedCredits)],
@@ -2494,25 +2451,27 @@ if (window.location.pathname.includes('grades.html')) {
             totalCreditsForGPA = metrics.attemptedCredits;
             let newGPA = metrics.gpa10;
             let newGPA4 = metrics.gpa4;
-            let overallLetter = totalCreditsForGPA > 0 ? convertGrade(newGPA, 'letter') : 'Chưa xếp loại';
+            totalPassed = userGrades.filter(g=>!isExcludedCourse(g)&&isPassedCourse(g)).length;
+            totalFailed = userGrades.filter(g=>!isExcludedCourse(g)&&isFailedCourse(g)).length;
+            const professionalCount = userGrades.filter(g=>!isExcludedCourse(g)).length;
 
-            currentUser.stats.gpa = newGPA;
-            currentUser.stats.gpa4 = newGPA4;
+            currentUser.stats.gpa = metrics.passedGPA10;
+            currentUser.stats.gpa4 = metrics.passedGPA4;
             currentUser.stats.credits = earnedCredits;
 
             if (needsSync) {
                 saveCurrentUser();
             }
             
-            document.getElementById('val-gpa-display').textContent = newGPA.toFixed(1);
+            document.getElementById('val-gpa-display').textContent = newGPA.toFixed(2);
             document.getElementById('val-reg-credits').textContent = regCredits;
             document.getElementById('val-earned-credits').textContent = earnedCredits;
-            document.getElementById('val-pass-count').textContent = `${totalPassed} / ${userGrades.length} môn`;
-            document.getElementById('val-fail-count').textContent = `${totalFailed} / ${userGrades.length} môn`;
+            document.getElementById('val-pass-count').textContent = `${totalPassed} / ${professionalCount} môn`;
+            document.getElementById('val-fail-count').textContent = `${totalFailed} / ${professionalCount} môn`;
 
             let gpa4Element = document.getElementById('val-gpa4-letter');
             if (gpa4Element) {
-                gpa4Element.textContent = `${newGPA4.toFixed(2)} | ${overallLetter}`;
+                gpa4Element.textContent = newGPA4.toFixed(2);
             }
 
             let classification = "Xếp loại học tập";
@@ -2954,7 +2913,8 @@ if (window.location.pathname.includes('grades.html')) {
           try {
             if (manualStatus) { manualStatus.textContent = ''; manualStatus.style.display = 'none'; }
             const yearVal = document.getElementById('m-year').value || '25 - 26';
-            const codeVal = document.getElementById('m-code').value.trim().toUpperCase() || 'PHY00001';
+            const codeVal = canonicalCurriculumCode(document.getElementById('m-code').value);
+            if (!codeVal) { showManualStatus('Vui lòng nhập mã học phần.'); return; }
 
             if (!courseDictionary[codeVal]) {
                 alert(`Lỗi: Mã học phần "${codeVal}" không tồn tại trong hệ thống! Vui lòng nhập đúng mã.`);
@@ -2963,11 +2923,10 @@ if (window.location.pathname.includes('grades.html')) {
 
             const priorCheck = checkMajorRegistrationPrior(codeVal, currentUser.stats.gradesList || []);
             if (!priorCheck.allowed) {
-                showManualStatus(majorRegistrationPriorMessage(priorCheck));
-                return;
+                if (!confirm(majorRegistrationPriorMessage(priorCheck) + '\nTiếp tục thêm học phần?')) return;
             }
             const existingCourse = (currentUser.stats.gradesList || []).find(
-                course => String(course.code || '').trim().toUpperCase() === codeVal
+                course => canonicalCurriculumCode(course.code) === codeVal
             );
             const requiredType = expectedRepeatType(existingCourse);
             if (existingCourse && !requiredType) {
@@ -3026,7 +2985,8 @@ if (window.location.pathname.includes('grades.html')) {
             finalScore = Math.min(10, finalScore + bonus.amount);
 
             let courseName = courseDictionary[codeVal] || "Học phần tự chọn";
-            let credits = courseCredits[codeVal] !== undefined ? courseCredits[codeVal] : 4;
+            let credits = getStandardCredit(codeVal, 0);
+            if (!credits) { showManualStatus('Chưa xác minh số tín chỉ của học phần. Vui lòng nhập bảng điểm có số tín chỉ chính thức qua Excel/JSON.'); return; }
             if (codeVal === "PHY00001") { credits = 3; }
 
             const newCourse = {
@@ -3290,7 +3250,7 @@ if (window.location.pathname.includes('grades.html')) {
         document.getElementById('btn-submit-edit').addEventListener('click', () => {
             if (editingIndex === -1) return;
 
-            const updatedCode = document.getElementById('e-code').value.trim().toUpperCase();
+            const updatedCode = canonicalCurriculumCode(document.getElementById('e-code').value);
 
             if (!courseDictionary[updatedCode]) {
                 alert(`Lỗi: Mã học phần "${updatedCode}" không tồn tại trong hệ thống! Vui lòng nhập đúng mã.`);
@@ -3306,13 +3266,12 @@ if (window.location.pathname.includes('grades.html')) {
                     updatedCode, currentUser.stats.gradesList.filter((_,i) => i !== editingIndex)
                 );
                 if (!priorCheck.allowed) {
-                    alert(majorRegistrationPriorMessage(priorCheck));
-                    return;
+                    if (!confirm(majorRegistrationPriorMessage(priorCheck) + '\nTiếp tục cập nhật?')) return;
                 }
             }
             // Không cho đổi mã sang một học phần đã có, tránh ghi đè dữ liệu không chủ ý.
             const isDuplicate = currentUser.stats.gradesList.some((course, index) =>
-                String(course.code || '').trim().toUpperCase() === updatedCode && index !== editingIndex
+                canonicalCurriculumCode(course.code) === updatedCode && index !== editingIndex
             );
             if (isDuplicate) {
                 alert('Mã môn này đã tồn tại. Hãy mở chính học phần đó để chỉnh sửa.');
@@ -3444,116 +3403,9 @@ if (window.location.pathname.includes('program.html') || window.location.pathnam
 }
 
 // -------------------------------------------------------------
-// 8. ĐỒNG BỘ BẢNG VÀ CẬP NHẬT BIỂU ĐỒ DONUT CHO TRANG MODULE-MATH
-// -------------------------------------------------------------
-if (window.location.pathname.includes('module-math.html')) {
-    const currentUser = getCurrentUser();
-    const gradesList = (currentUser && currentUser.stats && currentUser.stats.gradesList) ? currentUser.stats.gradesList : [];
-
-    const passedCodes = gradesList.filter(g => isPassedCourse(g)).map(g => g.code.toUpperCase());
-    const failedCodes = gradesList.filter(g => isFailedCourse(g)).map(g => g.code.toUpperCase());
-
-    let totalCredits = 0, earnedCredits = 0;
-    let totalSubjects = 0, passedSubjects = 0, failedSubjects = 0;
-
-    const tableRows = document.querySelectorAll('.course-table tbody tr');
-    tableRows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 8) {
-            totalSubjects++;
-            const codeCell = cells[1]; 
-            const tcCell = cells[3];   
-            const statusCell = cells[cells.length - 1]; 
-
-            if (codeCell && tcCell) {
-                const tc = parseInt(tcCell.textContent.trim()) || 0;
-                totalCredits += tc;
-                const courseCode = codeCell.textContent.trim().toUpperCase();
-
-                if (passedCodes.includes(courseCode)) {
-                    earnedCredits += tc;
-                    passedSubjects++;
-                    statusCell.className = 'td-status st-dat';
-                    statusCell.textContent = 'ĐẠT';
-                    row.style.backgroundColor = '#f2f8f2';
-                } else if (failedCodes.includes(courseCode)) {
-                    failedSubjects++;
-                    statusCell.className = 'td-status st-chua-dat';
-                    statusCell.textContent = 'CHƯA ĐẠT';
-                    row.style.backgroundColor = '';
-                } else {
-                    statusCell.className = 'td-status st-chua-hoc';
-                    statusCell.textContent = 'Chưa học';
-                    row.style.backgroundColor = '';
-                }
-            }
-        }
-    });
-
-    const fixedTotalCredits = 36; 
-    const unearnedCredits = fixedTotalCredits - earnedCredits;
-    const unlearnedSubjects = totalSubjects - passedSubjects - failedSubjects;
-    const percentEarned = Math.round((earnedCredits / fixedTotalCredits) * 100) || 0;
-
-    if (document.getElementById('chart-percent-text')) {
-        document.getElementById('chart-percent-text').textContent = percentEarned + '%';
-        document.getElementById('leg-cred-passed').textContent = earnedCredits + ' tín chỉ';
-        document.getElementById('leg-cred-not').textContent = unearnedCredits + ' tín chỉ';
-
-        document.getElementById('leg-course-passed').textContent = passedSubjects + ' môn';
-        document.getElementById('leg-course-failed').textContent = failedSubjects + ' môn';
-    }
-    
-    if (document.getElementById('math-progress-fill')) {
-        document.getElementById('math-progress-fill').style.width = percentEarned + '%';
-    }
-    if (document.getElementById('math-progress-text')) {
-        document.getElementById('math-progress-text').textContent = percentEarned + '%';
-    }
-
-    const ctxCredits = document.getElementById('chartCredits');
-    if (ctxCredits) {
-        let chart1 = Chart.getChart('chartCredits');
-        if (chart1) chart1.destroy();
-
-        new Chart(ctxCredits.getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Đã học', 'Chưa học'],
-                datasets: [{
-                    data: [earnedCredits, unearnedCredits],
-                    backgroundColor: ['#00c853', '#2962ff'],
-                    borderWidth: 0
-                }]
-            },
-            options: { cutout: '75%', plugins: { legend: { display: false } }, maintainAspectRatio: false }
-        });
-    }
-
-    const ctxCourses = document.getElementById('chartCourses');
-    if (ctxCourses) {
-        let chart2 = Chart.getChart('chartCourses');
-        if (chart2) chart2.destroy();
-
-        new Chart(ctxCourses.getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Đạt', 'Chưa đạt', 'Chưa học'],
-                datasets: [{
-                    data: [passedSubjects, failedSubjects, unlearnedSubjects],
-                    backgroundColor: ['#00c853', '#f44336', '#e0e0e0'],
-                    borderWidth: 0
-                }]
-            },
-            options: { cutout: '75%', plugins: { legend: { display: false } }, maintainAspectRatio: false }
-        });
-    }
-}
-
-// -------------------------------------------------------------
 // 8. ĐỒNG BỘ DỮ LIỆU VÀ VẼ BIỂU ĐỒ TRÊN TRANG DASHBOARD
 // -------------------------------------------------------------
-if (window.location.pathname.includes('dashboard.html') || window.location.pathname.endsWith('/')) {
+if (window.location.pathname.split('/').pop() === 'dashboard.html') {
     const currentUser = getCurrentUser();
     
     if (!currentUser) {
@@ -3632,7 +3484,7 @@ if (window.location.pathname.includes('dashboard.html') || window.location.pathn
             document.getElementById('val-rank').textContent = rank;
         }
         if (document.getElementById('val-gpa')) {
-            document.getElementById('val-gpa').textContent = gpa10.toFixed(1);
+            document.getElementById('val-gpa').textContent = gpa10.toFixed(2);
         }
         if (document.getElementById('val-passed')) {
             document.getElementById('val-passed').textContent = totalPassed;
@@ -3653,7 +3505,8 @@ if (window.location.pathname.includes('dashboard.html') || window.location.pathn
                 {key: 'general', label: 'Đại cương', color: '#4285F4'},
                 {key: 'foundation', label: 'Cơ sở ngành', color: '#FF3737'},
                 {key: 'major', label: 'Chuyên ngành', color: '#F4B763'},
-                {key: 'other', label: 'Chưa phân loại', color: '#8B5CF6'}
+                {key: 'graduation', label: 'Tốt nghiệp', color: '#8B5CF6'},
+                {key: 'other', label: 'Chưa phân loại', color: '#64748b'}
             ];
             // Chỉ hiển thị nhóm chưa phân loại nếu bảng điểm có môn thực tế thuộc nhóm đó.
             const visible = groups.filter(group => group.key !== 'other' || detail.other.credits > 0);
@@ -3955,7 +3808,7 @@ if (window.location.pathname.includes('module-politics.html')) {
         
         let passedCreds = 0, passedCourses = 0, failedCourses = 0;
         const totalCreds = 14; 
-        const totalCourses = 6;
+        const totalCourses = courseData.length;
 
         courseData.forEach(c => {
             const gradeInfo = gradesList.find(g => g.code.toUpperCase() === c.code.toUpperCase());
@@ -4044,7 +3897,7 @@ if (window.location.pathname.includes('module-skills.html')) {
         
         let passedCreds = 0, passedCourses = 0, failedCourses = 0;
         const totalCreds = 2;
-        const totalCourses = 3;
+        const totalCourses = courseData.length;
         const processedCodes = new Set();
         courseData.forEach(c => {
             const tr = document.createElement('tr');
@@ -4156,7 +4009,7 @@ if (window.location.pathname.includes('module-it.html')) {
         
         let passedCreds = 0, passedCourses = 0, failedCourses = 0;
         const totalCreds = 4; 
-        const totalCourses = 1;
+        const totalCourses = courseData.length;
         const processedCodes = new Set();
 
         courseData.forEach(c => {
@@ -4718,7 +4571,7 @@ if (window.location.pathname.includes('graduation.html')) {
                         : (hasTd1 || hasTd2 ? 'Đã đạt 1/2 học phần GDTC' : '')
                 },
                 credits: {
-                    done: earnedCredits >= totalTargetCredits,
+                    done: getCurriculumProgress(gradesList).complete,
                     note: `${earnedCredits} / ${totalTargetCredits} tín chỉ`
                 },
                 gpa_rank: {
@@ -4748,7 +4601,7 @@ if (window.location.pathname.includes('graduation.html')) {
             let completedCount = 0;
 
             conditionDefinitions.forEach((cond, idx) => {
-                const custom = cond.id === 'credits' ? undefined : overrides[cond.id];
+                const custom = ['credits','gpa_rank'].includes(cond.id) ? undefined : overrides[cond.id];
                 let isDone = autoData[cond.id].done;
                 let noteText = autoData[cond.id].note;
 
@@ -4782,7 +4635,7 @@ if (window.location.pathname.includes('graduation.html')) {
                         <div class="grad-note-mobile" aria-label="Chi tiết điều kiện"></div>
                     </td>
                     <td>
-                        ${cond.id === 'credits' ? '<span title="Tự động tính từ bảng điểm"><i class="fa-solid fa-lock" aria-hidden="true"></i> Tự động</span>' : `<button class="btn-grad-edit" onclick="openGradEditModal(${idx})" title="Chỉnh sửa điều kiện"><i class="fa-regular fa-pen-to-square"></i></button>`}
+                        ${['credits','gpa_rank'].includes(cond.id) ? '<span title="Tự động tính từ bảng điểm"><i class="fa-solid fa-lock" aria-hidden="true"></i> Tự động</span>' : `<button class="btn-grad-edit" onclick="openGradEditModal(${idx})" title="Chỉnh sửa điều kiện"><i class="fa-regular fa-pen-to-square"></i></button>`}
                     </td>
                 `;
                 const noteDesktop = tr.querySelector('.grad-note-desktop');
@@ -4867,7 +4720,7 @@ if (window.location.pathname.includes('graduation.html')) {
 
         window.openGradEditModal = function(index) {
             const cond = conditionDefinitions[index];
-            if (!cond || cond.id === 'credits') return;
+            if (!cond || ['credits','gpa_rank'].includes(cond.id)) return;
             editingCondIndex = index;
             const autoData = evaluateAutoConditions();
             const custom = currentUser.stats.graduationOverrides[cond.id];
@@ -4926,7 +4779,7 @@ if (window.location.pathname.includes('graduation.html')) {
             btnSaveGrad.addEventListener('click', () => {
                 if (editingCondIndex === -1) return;
                 const cond = conditionDefinitions[editingCondIndex];
-                if (!cond || cond.id === 'credits') return;
+                if (!cond || ['credits','gpa_rank'].includes(cond.id)) return;
                 const mode = document.getElementById('grad-modal-status').value;
                 const note = document.getElementById('grad-modal-note').value.trim();
 
@@ -5260,6 +5113,9 @@ if (window.location.pathname.includes('settings.html')) {
                         
                         // Kiểm tra xem file sao lưu có khớp với MSSV đang đăng nhập không
                         if (importedUser && importedUser.studentId === currentUser.studentId) {
+                            if (!importedUser.stats || !Array.isArray(importedUser.stats.gradesList) || validateImportedGrades(importedUser.stats.gradesList).length) throw new Error('Dữ liệu bảng điểm không hợp lệ');
+                            importedUser.stats.gradesList = mergeGradesReplacingOld([], importedUser.stats.gradesList);
+                            importedUser.stats.totalCredits = 138;
                             importedUser.password = currentUser.password;
                             importedUser.fullname = currentUser.fullname;
                             saveUserToStorage(importedUser);
@@ -5683,7 +5539,7 @@ if (window.location.pathname.includes('goals.html')) {
                 scoreInput.focus();
                 return;
             }
-            const score = Number(scoreInput.value);
+            const score = roundFinalScore(scoreInput.value);
 
             const newItem = { code, name, tc, type, score };
 
