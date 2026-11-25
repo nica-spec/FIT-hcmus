@@ -1155,10 +1155,15 @@ Object.values(CTDT_KHMT_2025).forEach(group => {
 const KHMT_MAJOR_NAMES = ["Khoa học máy tính","Công nghệ tri thức","Thị giác máy tính","An toàn thông tin","Khoa học dữ liệu"];
 const KHMT_MAJOR_LISTS = {"Công nghệ tri thức":{"core":"CSC14007 CSC15001 CSC15002 CSC15003 CSC15004 CSC15005 CSC15006 CSC15007 CSC15009 CSC15011 CSC15012 CSC15109","elect":"CSC10121 CSC10102 CSC10103 CSC10104 CSC10105 CSC10106 CSC10107 CSC14101 CSC14120 CSC15010 CSC15102 CSC15107 CSC15108 CSC15110 CSC16106 CSC18106"},"Thị giác máy tính":{"core":"CSC16001 CSC16002 CSC16003 CSC16004 CSC16005","elect":"CSC16101 CSC16102 CSC16105 CSC16106 CSC16107 CSC16109 CSC16113 CSC16114 CSC16115"},"An toàn thông tin":{"core":"CSC15001 CSC15002 CSC15003 CSC15005 CSC15010 CSC15109","elect":"CSC10104 CSC10107 CSC11004 CSC11120 CSC12001 CSC14005 CSC14007 CSC14117 CSC14120 CSC15004 CSC15107 CSC16106"},"Khoa học dữ liệu":{"core":"CSC10108 CSC14004 CSC14005 CSC14119 CSC17001 CSC17104","elect":"CSC14117 CSC14118 CSC14120 CSC15004 CSC15007 CSC15102 CSC17103 CSC17106 CSC18001 CSC18002 CSC18106 CSC18107"}};
 const KHMT_MAJOR_NAMES_BY_CODE = {"CSC14007":"Nhập môn phân tích độ phức tạp tính toán","CSC15001":"An ninh máy tính","CSC15002":"Bảo mật cơ sở dữ liệu","CSC15003":"Mã hóa ứng dụng","CSC15004":"Học thống kê","CSC15005":"Nhập môn mã hóa – mật mã","CSC15006":"Nhập môn xử lý ngôn ngữ tự nhiên","CSC15007":"Thống kê máy tính và ứng dụng","CSC15009":"Xử lý tín hiệu số","CSC15011":"Nhập môn ngôn ngữ học thống kê và ứng dụng","CSC15012":"Ứng dụng xử lý ngôn ngữ tự nhiên trong doanh nghiệp","CSC15109":"Nhập môn tính toán lượng tử","CSC10121":"Kỹ năng mềm","CSC10105":"Nhập môn tư duy thuật toán","CSC10106":"Thuật toán tổ hợp và ứng dụng","CSC10107":"Thực tập thực tế","CSC15010":"Blockchain và ứng dụng","CSC15102":"Phân tích mạng xã hội","CSC15107":"Bảo vệ dữ liệu và quyền riêng tư","CSC15108":"Pháp chứng cho dữ liệu số","CSC15110":"Ứng dụng trí tuệ nhân tạo","CSC16106":"Nhập môn lập trình điều khiển thông minh","CSC16001":"Đồ họa máy tính","CSC16002":"Phương pháp toán trong phân tích dữ liệu","CSC16003":"Phân tích thiết kế dữ liệu đa chiều","CSC16004":"Thị giác máy tính","CSC16005":"Xử lý ảnh số và video số","CSC16101":"Đồ họa ứng dụng","CSC16102":"Kỹ thuật lập trình xử lý ảnh và video số","CSC16105":"Truy vấn thông tin thị giác","CSC16107":"Ứng dụng thị giác máy tính","CSC16109":"Ứng dụng xử lý ảnh và video số","CSC16113":"Thị giác máy tính ba chiều","CSC16114":"Học sâu trong thị giác máy tính","CSC16115":"Triển khai và vận hành hệ thống thị giác","CSC11004":"Mạng máy tính nâng cao","CSC11120":"Bảo mật web và thiết bị di động","CSC12001":"Hệ quản trị cơ sở dữ liệu","CSC17104":"Lập trình cho khoa học dữ liệu","CSC17103":"Khai thác dữ liệu đồ thị","CSC17106":"Xử lý phân tích dữ liệu trực tuyến","CSC18001":"Nhập môn học sâu","CSC18002":"Nhập môn trí tuệ nhân tạo tạo sinh","CSC18106":"Mô hình ngôn ngữ lớn","CSC18107":"Các chủ đề chọn lọc trong trí tuệ nhân tạo"};
+// CTĐT KHMT K2025, mục 7.2.2.2–7.2.2.5 và Phụ lục 1 trang 1–4/5; trang 5 chưa truy xuất được.
+const VERIFIED_EXTRA_CREDITS = {"CSC14001":4,"CSC14002":4,"CSC14004":4,"CSC14005":4,"CSC14006":4,"CSC14101":4,"CSC14111":4,"CSC14118":4,"CSC14120":4,"CSC14008":4,"CSC14105":4,"CSC14112":4,"CSC14113":4,"CSC14117":4,"CSC14007":4,"CSC15001":4,"CSC15002":4,"CSC15003":4,"CSC15004":4,"CSC15005":4,"CSC15006":4,"CSC15007":4,"CSC15009":4,"CSC15011":4,"CSC15012":4,"CSC15109":4,"CSC15010":4,"CSC15102":4,"CSC15107":4,"CSC15108":4,"CSC15110":4,"CSC16001":4,"CSC16002":4,"CSC16003":4,"CSC16004":4,"CSC16005":4,"CSC16101":4,"CSC16102":4,"CSC16105":4,"CSC16106":4,"CSC16107":4,"CSC16109":4,"CSC16113":4,"CSC16114":4,"CSC16115":4,"CSC10108":4,"CSC14119":4,"CSC17001":4,"CSC17104":4,"CSC17103":4,"CSC17106":4,"CSC14114":4,"CSC14116":4,"CSC15104":4,"CSC15105":4,"CSC15106":4,"CSC16110":4,"CSC16111":4,"CSC16112":4,"CSC17107":4,"CSC14115":4,"CSC12002":4,"CSC12003":4,"CSC12004":4,"CSC12005":4,"CSC10104":4,"CSC10105":4,"CSC10106":4,"CSC10107":4,"CSC12001":4,"CSC12105":4,"CSC12106":4,"CSC17101":4,"CSC13003":4,"CSC13005":4,"CSC13006":4,"CSC13007":4,"CSC13008":4,"CSC13009":4,"CSC13010":4,"CSC13106":4,"CSC13112":4,"CSC13001":4,"CSC13101":4,"CSC13102":4,"CSC13103":4,"CSC13107":4,"CSC13117":4,"CSC18001":4,"CSC18002":4,"CSC18101":4,"CSC18102":4,"CSC18103":4,"CSC18104":4,"CSC18106":4,"CSC18107":4,"CSC11002":4,"CSC11003":4,"CSC11004":4,"CSC11006":4,"CSC11007":4,"CSC11120":4,"CSC10121":3,"CSC10102":2,"CSC10103":3};
+const VERIFIED_FREE_CODES = new Set(["CSC14001","CSC14002","CSC14004","CSC14005","CSC14006","CSC14101","CSC14111","CSC14118","CSC14120","CSC14008","CSC14105","CSC14112","CSC14113","CSC14117","CSC14007","CSC15001","CSC15002","CSC15003","CSC15004","CSC15005","CSC15006","CSC15007","CSC15009","CSC15011","CSC15012","CSC15109","CSC15010","CSC15102","CSC15107","CSC15108","CSC15110","CSC16001","CSC16002","CSC16003","CSC16004","CSC16005","CSC16101","CSC16102","CSC16105","CSC16106","CSC16107","CSC16109","CSC16113","CSC16114","CSC16115","CSC10108","CSC14119","CSC17001","CSC17104","CSC17103","CSC17106","CSC14114","CSC14116","CSC15104","CSC15105","CSC15106","CSC16110","CSC16111","CSC16112","CSC17107","CSC14115","CSC12002","CSC12003","CSC12004","CSC12005","CSC10104","CSC10105","CSC10106","CSC10107","CSC12001","CSC12105","CSC12106","CSC17101","CSC13003","CSC13005","CSC13006","CSC13007","CSC13008","CSC13009","CSC13010","CSC13106","CSC13112","CSC13001","CSC13101","CSC13102","CSC13103","CSC13107","CSC13117","CSC18001","CSC18002","CSC18101","CSC18102","CSC18103","CSC18104","CSC18106","CSC18107","CSC11002","CSC11003","CSC11004","CSC11006","CSC11007","CSC10121","CSC10102","CSC10103"]);
+const VERIFIED_EXTRA_NAMES = {"CSC15104":"An toàn và phục hồi dữ liệu","CSC15105":"Khai thác dữ liệu văn bản và ứng dụng","CSC15106":"Seminar Công nghệ tri thức","CSC16110":"Chuyên đề Đồ họa máy tính","CSC16111":"Chuyên đề Thị giác máy tính","CSC16112":"Chuyên đề Xử lý ảnh số và video số","CSC17107":"Ứng dụng phân tích dữ liệu thông minh","CSC12002":"Cơ sở dữ liệu nâng cao","CSC12003":"Hệ quản trị cơ sở dữ liệu","CSC12004":"Phân tích thiết kế hệ thống thông tin","CSC12005":"Phát triển ứng dụng hệ thống thông tin hiện đại","CSC12105":"Thương mại điện tử","CSC12106":"Tương tác người – máy","CSC17101":"Hệ thống tư vấn","CSC13003":"Kiểm thử phần mềm","CSC13005":"Phân tích và quản lý yêu cầu phần mềm","CSC13006":"Quản lý dự án phần mềm","CSC13007":"Phát triển game","CSC13008":"Phát triển ứng dụng web","CSC13009":"Phát triển phần mềm cho thiết bị di động","CSC13010":"Thiết kế phần mềm","CSC13106":"Kiến trúc phần mềm","CSC13112":"Thiết kế giao diện","CSC13001":"Lập trình Windows","CSC13101":"Các chủ đề nâng cao trong Công nghệ phần mềm","CSC13102":"Lập trình ứng dụng Java","CSC13103":"Nhập môn hệ thống phân tán","CSC13107":"Mẫu thiết kế hướng đối tượng và ứng dụng","CSC13117":"Phát triển game nâng cao","CSC18101":"Trí tuệ nhân tạo cho an ninh thông tin","CSC18102":"Phương pháp toán cho tối ưu","CSC18103":"Trí tuệ bầy đàn","CSC18104":"Nhập môn hệ thống đa tác nhân","CSC11002":"Hệ thống viễn thông","CSC11003":"Lập trình mạng","CSC11006":"Nhập môn điện toán đám mây","CSC11007":"Nhập môn DevOps","CSC12001":"An toàn và bảo mật dữ liệu trong hệ thống thông tin","CSC15107":"Phân tích dữ liệu bảo toàn tính riêng tư","CSC15110":"Các công nghệ tiên tiến trong xử lý ngôn ngữ tự nhiên","CSC16002":"Phương pháp toán trong phân tích dữ liệu thị giác","CSC16003":"Phân tích thống kê dữ liệu nhiều biến","CSC16115":"Triển khai và vận hành hệ thống học máy"};
+function verifiedExtraCourse(code) { const tc=VERIFIED_EXTRA_CREDITS[code]; return {code,name:VERIFIED_EXTRA_NAMES[code] || KHMT_MAJOR_NAMES_BY_CODE[code] || code,tc:tc??null,type:'TC',lt:code==='CSC10107'||code==='CSC10121'||code==='CSC10103'?30:code==='CSC10102'?15:45,th:code==='CSC10107'?60:30,bt:0,project:0,req:''}; }
 function selectedK2025Major() {
     try {
         const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
-        return KHMT_MAJOR_NAMES.includes(user?.major) ? user.major : '';
+        return KHMT_MAJOR_NAMES.includes(user?.major) ? user.major : 'Khoa học máy tính';
     } catch { return ''; }
 }
 function getSelectedMajorCourses() {
@@ -1169,10 +1174,7 @@ function getSelectedMajorCourses() {
     if (!groups) return [];
     const build = (text, section) => text.split(' ').filter(Boolean).map(code => {
         const base = Object.values(CTDT_KHMT_2025).flat().find(c => c.code === code);
-        return base ? {...base, section} : {
-            code, name: KHMT_MAJOR_NAMES_BY_CODE[code] || code,
-            tc:null, type:'TC', lt:'—', th:'—', bt:'—', req:'', section, project:0
-        };
+        return base ? {...base, section} : {...verifiedExtraCourse(code),section};
     });
     return [...build(groups.core,'major_core'), ...build(groups.elect,'major_elective')];
 }
@@ -1182,10 +1184,11 @@ const CTDT_COURSE_INDEX = Object.fromEntries(Object.entries(CTDT_KHMT_2025).flat
 for (const spec of Object.values(KHMT_MAJOR_LISTS)) {
     for (const code of (spec.core + ' ' + spec.elect).split(' ').filter(Boolean)) {
         if (!CTDT_COURSE_INDEX[code]) {
-            CTDT_COURSE_INDEX[code] = {code, name:KHMT_MAJOR_NAMES_BY_CODE[code] || code, tc:null, group:'major'};
+            CTDT_COURSE_INDEX[code] = {...verifiedExtraCourse(code),group:'major'};
         }
     }
 }
+for(const code of VERIFIED_FREE_CODES) if(!CTDT_COURSE_INDEX[code]) CTDT_COURSE_INDEX[code]={...verifiedExtraCourse(code),group:'major'};
 function getCurriculumCredits(grades,group){
  const passed = getLatestCourses(grades).filter(g=>isPassedCourse(g));
  const byCode = new Map(passed.map(g=>[String(g.code).trim().toUpperCase(),g]));
@@ -1199,7 +1202,12 @@ function getCurriculumCredits(grades,group){
      const earned = list => list.reduce((a,c)=>a+(byCode.has(c.code)?getStandardCredit(c.code,byCode.get(c.code).tc):0),0);
      const core = earned(chosen.filter(c=>c.section==='major_core'));
      const electives = earned(chosen.filter(c=>c.section==='major_elective'));
-     return Math.min(34,Math.min(16,core)+Math.min(8,electives)+Math.min(10,Math.max(0,core-16)+Math.max(0,electives-8)));
+     const chosenCodes=new Set(chosen.map(c=>c.code));
+      const free=passed.filter(g=>VERIFIED_FREE_CODES.has(g.code)&&!chosenCodes.has(g.code)&&CTDT_COURSE_INDEX[g.code]?.group==='major').reduce((n,g)=>n+getStandardCredit(g.code,g.tc),0);
+      const coreUsed=Math.min(16,core);
+      const electiveAvailable=electives+Math.max(0,core-16);
+      const electiveUsed=Math.min(8,electiveAvailable);
+      return coreUsed+electiveUsed+Math.min(10,Math.max(0,electiveAvailable-8)+free);
  }
  if(group==='graduation') return Math.min(10, Math.max(...source.filter(c=>c.section==='grad_full').map(c=>byCode.has(c.code)?10:0),0, Math.min(6,sum(source.filter(c=>c.section==='grad_project')))+Math.min(4,sum(source.filter(c=>c.section==='grad_seminar')))));
  return Math.min(CTDT_REQUIREMENTS[group]||Infinity,sum(source));
@@ -1282,7 +1290,7 @@ Object.entries(KHMT_MAJOR_NAMES_BY_CODE).forEach(([code,name]) => {
 // Ưu tiên thông tin được đối chiếu từ CTĐT K2025, không thay đổi dữ liệu điểm của sinh viên.
 Object.entries(CTDT_COURSE_INDEX).forEach(([code,info])=>{if (Number.isFinite(info.tc)) courseCredits[code]=info.tc;courseDictionary[code]=info.name;});
 // Giữ mã cũ để bảng điểm đã nhập không tự biến mất; mã chính thức mới được dùng ở danh mục.
-const CTDT_LEGACY_CODES = {'BAA00105':'BAA00003','BAA00011':'BAA00004','CSC14004_AI':'CSC14003'};
+const CTDT_LEGACY_CODES = {'BAA00105':'BAA00003','BAA00011':'BAA00004','CSC14004_AI':'CSC14003','CSC1009':'CSC10009'};
 function canonicalCurriculumCode(code){return CTDT_LEGACY_CODES[String(code||'').trim().toUpperCase()]||String(code||'').trim().toUpperCase();}
 
 // Hàm tiện ích lấy số tín chỉ chuẩn của một môn học
@@ -1504,7 +1512,7 @@ function checkCertificateDate(rawIssue, rawSubmit) {
 }
 
 function exportGraduationReport(user) {
-    const grades=user.stats?.gradesList || [];
+    const grades=getLatestCourses(user.stats?.gradesList || []);
     const m=getCourseMetrics(grades), target=user.stats?.totalCredits || 138;
     const overrides=user.stats?.graduationOverrides || {};
     const passCodes=new Set(grades.filter(isPassedCourse).map(g=>String(g.code||'').trim().toUpperCase()));
@@ -1520,11 +1528,11 @@ function exportGraduationReport(user) {
               scoreOk=!!m && Number(m[1])>=316 && Number(m[1])<=990 && Number(m[2])>=181 && Number(m[2])<=400;
           } else {
               const min={'VNU-EPT':176,'IELTS':4,'TOEFL (iBT)':32,'PET':80};
-              const max={'VNU-EPT':400,'IELTS':9,'PET':170};
+              const max={'VNU-EPT':400,'IELTS':9,'PET':170,'TOEFL (iBT)':120};
               const v=Number(scores.replace(',','.'));
               scoreOk=Object.prototype.hasOwnProperty.call(min,type) && /^\d+(?:[.,]\d+)?$/.test(scores) &&
                   v>=min[type] && (max[type]===undefined || v<=max[type]) &&
-                  (type!=='IELTS' || Number.isInteger(v*2));
+                  (type!=='IELTS' || Number.isInteger(v*2)) && (type!=='TOEFL (iBT)' || Number.isInteger(v));
           }
           return scoreOk && checkCertificateDate(custom.certDate, custom.certSubmitDate).valid;
       }
@@ -1935,7 +1943,7 @@ if (window.location.pathname.includes('module-math.html')) {
         courseData.forEach(c => {
             const tr = document.createElement('tr');
             if (c.isHeader) {
-                tr.innerHTML = `<td>${c.stt}</td><td colspan="9" class="group-header">${c.name}</td>`;
+                tr.innerHTML = `<td>${c.stt}</td><td colspan="9" class="group-header">${escapeReportHTML(c.name)}</td>`;
             } else {
                 const found = gradesList.find(g=>String(g.code||'').toUpperCase()===c.code);
                 const status = found ? (isPassedCourse(found)?'Đạt':isFailedCourse(found)?'Chưa đạt':'Đang học') : (grades[c.code] || 'Chưa học');
@@ -1959,10 +1967,10 @@ if (window.location.pathname.includes('module-math.html')) {
 
                 tr.innerHTML = `
                     <td>${c.stt}</td>
-                    <td>${c.code}</td>
-                    <td>${c.name}</td>
-                    <td>${c.tc}</td>
-                    <td>${c.type}</td>
+                    <td>${escapeReportHTML(c.code)}</td>
+                    <td>${escapeReportHTML(c.name)}</td>
+                    <td>${escapeReportHTML(c.tc)}</td>
+                    <td>${escapeReportHTML(c.type)}</td>
                     <td>${c.lt}</td><td>${c.th}</td><td>${c.bt}</td>
                     <td>${k2025PriorLabel(c)}</td>
                     <td class="td-status ${statusClass}">${displayStatus}</td>
@@ -2018,7 +2026,7 @@ if (window.location.pathname.includes('grades.html')) {
                 return;
             }
             if (typeof XLSX === 'undefined') {
-                alert('Không tải được thư viện Excel. Hãy kiểm tra Internet hoặc chọn xuất JSON.');
+                alert('Không tải được thư viện Excel. Hãy kiểm tra thư mục vendor hoặc chọn xuất JSON.');
                 return;
             }
             const excelData = grades.map((g, index) => ({
@@ -2272,7 +2280,7 @@ if (window.location.pathname.includes('grades.html')) {
             };
             filteredGrades.forEach(g => {
                 const originalIndex = storedGrades.findIndex(item =>
-                    String(item.code || '').trim().toUpperCase() === String(g.code || '').trim().toUpperCase());
+                    canonicalCurriculumCode(item.code) === canonicalCurriculumCode(g.code));
                 const card = document.createElement('article');
                 card.className = 'mobile-grade-card';
                 const top = document.createElement('div');
@@ -2361,7 +2369,10 @@ if (window.location.pathname.includes('grades.html')) {
             document.getElementById('display-fullname').textContent = currentUser.fullname;
             document.getElementById('display-mssv').textContent = `MSSV: ${currentUser.studentId}`;
             
-            const storedGrades = currentUser.stats.gradesList || [];
+            const previousGrades = currentUser.stats.gradesList || [];
+            const storedGrades = mergeGradesReplacingOld([],previousGrades).map(g=>({...g,tc:getStandardCredit(g.code,g.tc),name:courseDictionary[g.code]||g.name}));
+            if(JSON.stringify(previousGrades)!==JSON.stringify(storedGrades)){ currentUser.stats.gradesList=storedGrades; saveCurrentUser(); }
+            else currentUser.stats.gradesList=storedGrades;
             const userGrades = getLatestCourses(storedGrades);
             updateGradeFilterMenus(userGrades);
             // Chỉ lọc bảng hiển thị; thống kê dưới bảng luôn dựa trên toàn bộ học phần.
@@ -2385,7 +2396,7 @@ if (window.location.pathname.includes('grades.html')) {
             let needsSync = false;
             
             if (userGrades.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px;">Chưa có dữ liệu</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:30px;">Chưa có dữ liệu</td></tr>`;
             } else {
                 userGrades.forEach((g, index) => {
                     const codeUpper = (g.code || "").trim().toUpperCase();
@@ -2422,12 +2433,12 @@ if (window.location.pathname.includes('grades.html')) {
                 tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;">Không có học phần nào phù hợp với bộ lọc.</td></tr>`;
             }
             tableRows.forEach((g, index) => {
-                const originalIndex = storedGrades.findIndex(item => String(item.code || '').trim().toUpperCase() === String(g.code || '').trim().toUpperCase());
+                const originalIndex = storedGrades.findIndex(item => canonicalCurriculumCode(item.code) === canonicalCurriculumCode(g.code));
                 tbody.innerHTML += `
                         <tr>
-                            <td>${index + 1}</td><td>${g.year}</td><td>${g.sem}</td><td>${g.code}</td>
-                            <td style="font-weight: 500; text-align: left;">${g.name}</td>
-                            <td>${g.tc}</td>
+                            <td>${index + 1}</td><td>${escapeReportHTML(g.year)}</td><td>${escapeReportHTML(g.sem)}</td><td>${escapeReportHTML(g.code)}</td>
+                            <td style="font-weight: 500; text-align: left;">${escapeReportHTML(g.name)}</td>
+                            <td>${escapeReportHTML(g.tc)}</td>
                             <td>
                                 <span onclick="showScoreDetails(${originalIndex})" 
                                     style="font-weight: 700; text-decoration: underline; cursor: pointer; color: #1a498b;" 
@@ -2435,7 +2446,7 @@ if (window.location.pathname.includes('grades.html')) {
                                     ${convertGrade(g.score, currentGradeScale)}
                                 </span>
                             </td>
-                            <td>${getCourseStatus(g)}</td><td style="font-size: 12px;">${g.note}</td>
+                            <td>${escapeReportHTML(getCourseStatus(g))}</td><td style="font-size: 12px;">${escapeReportHTML(g.note)}</td>
                             <td class="col-edit-action" style="display: none;">
                                 <button class="edit-icon-btn" onclick="editCourse(${originalIndex})">
                                     <i class="fa-regular fa-pen-to-square"></i>
@@ -2562,7 +2573,7 @@ if (window.location.pathname.includes('grades.html')) {
                     html += `<ul style="margin: 5px 0 10px 0; padding-left: 20px;">`;
                     let displayCount = Math.min(improveCoursesNames.length, 2); 
                     for (let i = 0; i < displayCount; i++) {
-                        html += `<li>${improveCoursesNames[i]}</li>`;
+                        html += `<li>${escapeReportHTML(improveCoursesNames[i])}</li>`;
                     }
                     html += `</ul>`;
                     
@@ -2606,13 +2617,13 @@ if (window.location.pathname.includes('grades.html')) {
                         if (modal && content) {
                             let modalHtml = `<p style="color: red; font-weight: bold; margin-bottom: 5px;">Các môn phải học lại:</p><ul style="margin-top: 0;">`;
                             if (failedCoursesNames.length > 0) {
-                                failedCoursesNames.forEach(n => modalHtml += `<li>${n}</li>`);
+                                failedCoursesNames.forEach(n => modalHtml += `<li>${escapeReportHTML(n)}</li>`);
                             } else {
                                 modalHtml += `<li>Không có</li>`;
                             }
                             modalHtml += `</ul><p style="color: #00c853; font-weight: bold; margin-bottom: 5px;">Các môn nên học cải thiện:</p><ul style="margin-top: 0;">`;
                             if (improveCoursesNames.length > 0) {
-                                improveCoursesNames.forEach(n => modalHtml += `<li>${n}</li>`);
+                                improveCoursesNames.forEach(n => modalHtml += `<li>${escapeReportHTML(n)}</li>`);
                             } else {
                                 modalHtml += `<li>Không có</li>`;
                             }
@@ -2689,7 +2700,7 @@ if (window.location.pathname.includes('grades.html')) {
                     renderGrades(); 
                     
                     if (document.querySelector('.col-edit-action') && document.querySelector('.col-edit-action').style.display !== 'none') {
-                        toggleEditMode(true);
+                        toggleEditMode(window.innerWidth > 768);
                     }
                 });
             });
@@ -2995,7 +3006,7 @@ if (window.location.pathname.includes('grades.html')) {
                 code: codeVal,
                 name: courseName,
                 tc: credits,
-                score: Math.round(finalScore * 10) / 10,
+                score: roundFinalScore(finalScore),
                 status: roundFinalScore(finalScore) >= 5.0 ? "Đ" : "CĐ",
                 note: selectedType,
                 colsCount: wInputs.length,
@@ -3018,10 +3029,12 @@ if (window.location.pathname.includes('grades.html')) {
         });
 
         const btnEditMode = document.getElementById('btn-edit');
+        window.addEventListener('resize',()=>{if(window.innerWidth<=768)toggleEditMode(false);});
         const btnFinishEdit = document.getElementById('btn-finish-edit');
         const finishContainer = document.getElementById('finish-edit-container');
 
         function toggleEditMode(isEditing) {
+            isEditing = Boolean(isEditing && window.innerWidth > 768);
             const editCols = document.querySelectorAll('.col-edit-action');
             editCols.forEach(col => {
                 col.style.display = isEditing ? 'table-cell' : 'none';
@@ -3048,7 +3061,7 @@ if (window.location.pathname.includes('grades.html')) {
 
         if (btnEditMode) {
             btnEditMode.addEventListener('click', () => {
-                toggleEditMode(true);
+                toggleEditMode(window.innerWidth > 768);
             });
         }
 
@@ -3095,7 +3108,7 @@ if (window.location.pathname.includes('grades.html')) {
                 rowsHtml += `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 10px; text-align: center;">Cột ${i + 1}</td>
-                        <td style="padding: 10px; text-align: center; font-weight: 500;">${item.weight}%</td>
+                        <td style="padding: 10px; text-align: center; font-weight: 500;">${escapeReportHTML(item.weight)}%</td>
                         <td style="padding: 10px; text-align: center; font-weight: 700; color: #1a498b;">${parseFloat(item.score).toFixed(1)}</td>
                     </tr>
                 `;
@@ -3106,7 +3119,7 @@ if (window.location.pathname.includes('grades.html')) {
                 rowsHtml += `
                     <tr style="border-bottom:1px solid #eee;">
                         <td style="padding:10px;text-align:center;">Điểm cộng</td>
-                        <td style="padding:10px;text-align:center;font-weight:500;">${bonus.weight}%</td>
+                        <td style="padding:10px;text-align:center;font-weight:500;">${escapeReportHTML(bonus.weight)}%</td>
                         <td style="padding:10px;text-align:center;font-weight:700;color:#1a498b;">${Number(bonus.score).toFixed(1)}</td>
                     </tr>`;
             }
@@ -3120,7 +3133,7 @@ if (window.location.pathname.includes('grades.html')) {
                     <div style="border-bottom: 2px solid #f0f4f8; padding-bottom: 12px; margin-bottom: 16px;">
                         <h3 style="margin: 0; color: #1a498b; font-size: 1.1rem;">Chi tiết điểm thành phần</h3>
                         <p style="margin: 4px 0 0 0; font-size: 0.9rem; color: #555; font-weight: 600;">
-                            ${course.name} (${course.code})
+                            ${escapeReportHTML(course.name)} (${escapeReportHTML(course.code)})
                         </p>
                     </div>
 
@@ -3258,6 +3271,7 @@ if (window.location.pathname.includes('grades.html')) {
             }
 
             const originalCourse = currentUser.stats.gradesList[editingIndex];
+            if(!getStandardCredit(updatedCode,canonicalCurriculumCode(originalCourse.code)===updatedCode?originalCourse.tc:0)){alert('Chưa xác minh số tín chỉ của mã môn này.');return;}
             const requiredEditType = expectedRepeatType(originalCourse);
             // Sửa điểm của chính môn đang có không phải đăng ký mới.
             // Khi đổi mã môn thành môn chuyên ngành khác, áp dụng kiểm tra như thao tác Thêm.
@@ -3297,7 +3311,7 @@ if (window.location.pathname.includes('grades.html')) {
                 updatedScoresList.push({ weight: w, score: s });
             }
 
-            if (Math.round(totalWeight) !== 100) {
+            if (Math.abs(totalWeight-100)>1e-6) {
                 alert('Tổng phần trăm trọng số phải đúng bằng 100%!');
                 return;
             }
@@ -3313,9 +3327,9 @@ if (window.location.pathname.includes('grades.html')) {
             currentUser.stats.gradesList[editingIndex].sem = activeSem;
             currentUser.stats.gradesList[editingIndex].code = updatedCode;
             currentUser.stats.gradesList[editingIndex].name = courseDictionary[updatedCode] || "Học phần tự chọn";
-            currentUser.stats.gradesList[editingIndex].tc = getStandardCredit(updatedCode, currentUser.stats.gradesList[editingIndex].tc);
+            currentUser.stats.gradesList[editingIndex].tc = getStandardCredit(updatedCode, canonicalCurriculumCode(originalCourse.code)===updatedCode ? originalCourse.tc : 0);
             currentUser.stats.gradesList[editingIndex].note = activeType;
-            currentUser.stats.gradesList[editingIndex].score = Math.round(finalScore * 10) / 10;
+            currentUser.stats.gradesList[editingIndex].score = roundFinalScore(finalScore);
             currentUser.stats.gradesList[editingIndex].status = roundFinalScore(finalScore) >= 5.0 ? "Đ" : "CĐ";
             currentUser.stats.gradesList[editingIndex].colsCount = wInputs.length;
             currentUser.stats.gradesList[editingIndex].scoresList = updatedScoresList;
@@ -3335,7 +3349,7 @@ if (window.location.pathname.includes('grades.html')) {
                 saveCurrentUser();
                 editModal.style.display = 'none';
                 renderGrades();
-                toggleEditMode(true);
+                toggleEditMode(window.innerWidth > 768);
             }
         });
 
@@ -3468,7 +3482,7 @@ if (window.location.pathname.split('/').pop() === 'dashboard.html') {
         const gpa10 = metrics.passedGPA10;
 
         let rank = "--";
-        if (earnedCredits > 0) {
+        if (creditsForGPA > 0) {
             if (gpa10 >= 9.0) rank = "Xuất sắc";
             else if (gpa10 >= 8.0) rank = "Giỏi";
             else if (gpa10 >= 7.0) rank = "Khá";
@@ -3756,39 +3770,6 @@ if (window.location.pathname.split('/').pop() === 'dashboard.html') {
     }
 }
 
-function updateCategoryProgress() {
-    let earnedCredits = 0;
-    const totalCredits = 36; 
-    const tableRows = document.querySelectorAll('table tbody tr');
-
-    tableRows.forEach(row => {
-        const creditCell = row.cells[3]; 
-        const statusCell = row.cells[7]; 
-
-        if (creditCell && statusCell) {
-            const credits = parseInt(creditCell.innerText.trim());
-            const status = statusCell.innerText.trim();
-
-            if (status.includes('Đã học') || status.includes('Đạt')) {
-                if (!isNaN(credits)) {
-                    earnedCredits += credits;
-                }
-            }
-        }
-    });
-
-    let percentage = (totalCredits === 0) ? 0 : Math.round((earnedCredits / totalCredits) * 100);
-    const progressBar = document.querySelector('.progress-bar-fill');
-    const progressText = document.querySelector('.progress-text');
-
-    if (progressBar) {
-        progressBar.style.width = percentage + '%';
-    }
-    if (progressText) {
-        progressText.innerText = percentage + '%';
-    }
-}
-
 // -------------------------------------------------------------
 // 9. HIỂN THỊ CHI TIẾT LÝ LUẬN CHÍNH TRỊ - PHÁP LUẬT (module-politics.html)
 // -------------------------------------------------------------
@@ -3834,10 +3815,10 @@ if (window.location.pathname.includes('module-politics.html')) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${c.stt}</td>
-                <td>${c.code}</td>
-                <td style="text-align: left; font-weight: 600;">${c.name}</td>
-                <td>${c.tc}</td>
-                <td>${c.type}</td>
+                <td>${escapeReportHTML(c.code)}</td>
+                <td style="text-align: left; font-weight: 600;">${escapeReportHTML(c.name)}</td>
+                <td>${escapeReportHTML(c.tc)}</td>
+                <td>${escapeReportHTML(c.type)}</td>
                 <td>${c.lt}</td><td>${c.th}</td><td>${c.bt}</td>
                 <td>${k2025PriorLabel(c)}</td>
                 <td class="td-status ${statusClass}">${displayStatus}</td>
@@ -3903,7 +3884,7 @@ if (window.location.pathname.includes('module-skills.html')) {
             const tr = document.createElement('tr');
             
             if (c.isHeader) {
-                tr.innerHTML = `<td>${c.stt}</td><td colspan="9" class="group-header" style="text-align:left; font-weight:bold; background-color:#f8f9fa;">${c.name}</td>`;
+                tr.innerHTML = `<td>${c.stt}</td><td colspan="9" class="group-header" style="text-align:left; font-weight:bold; background-color:#f8f9fa;">${escapeReportHTML(c.name)}</td>`;
             } else {
                 const gradeInfo = gradesList.find(g => g.code.toUpperCase() === c.code.toUpperCase());
                 let statusClass = 'st-chua-hoc';
@@ -3934,10 +3915,10 @@ if (window.location.pathname.includes('module-skills.html')) {
                 tr.style = bgRow;
                 tr.innerHTML = `
                     <td>${c.stt}</td>
-                    <td>${c.code}</td>
-                    <td style="text-align: left; font-weight: 600;">${c.name}</td>
-                    <td>${c.tc}</td>
-                    <td>${c.type}</td>
+                    <td>${escapeReportHTML(c.code)}</td>
+                    <td style="text-align: left; font-weight: 600;">${escapeReportHTML(c.name)}</td>
+                    <td>${escapeReportHTML(c.tc)}</td>
+                    <td>${escapeReportHTML(c.type)}</td>
                     <td>${c.lt}</td><td>${c.th}</td><td>${c.bt}</td>
                     <td>${k2025PriorLabel(c)}</td>
                     <td class="td-status ${statusClass}">${displayStatus}</td>
@@ -4039,10 +4020,10 @@ if (window.location.pathname.includes('module-it.html')) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${c.stt}</td>
-                <td>${c.code}</td>
+                <td>${escapeReportHTML(c.code)}</td>
                 <td style="text-align: center; font-weight: 600;">${c.name.replace(/^\[Nhóm[^\]]+\]\s*/i, "")}</td>
-                <td>${c.tc}</td>
-                <td>${c.type}</td>
+                <td>${escapeReportHTML(c.tc)}</td>
+                <td>${escapeReportHTML(c.type)}</td>
                 <td>${c.lt}</td><td>${c.th}</td><td>${c.bt}</td>
                 <td>${k2025PriorLabel(c)}</td>
                 <td class="td-status ${statusClass}">${displayStatus}</td>
@@ -4122,7 +4103,7 @@ if (window.location.pathname.includes('module-language.html')) {
             if (c.isHeader) {
                 tr.innerHTML = `
                     <td></td>
-                    <td colspan="9" style="text-align: left; font-weight: 700; color: #333; padding: 14px 12px;">${c.name}</td>
+                    <td colspan="9" style="text-align: left; font-weight: 700; color: #333; padding: 14px 12px;">${escapeReportHTML(c.name)}</td>
                 `;
             } else {
                 const gradeInfo = gradesList.find(g => g.code.toUpperCase() === c.code.toUpperCase());
@@ -4150,10 +4131,10 @@ if (window.location.pathname.includes('module-language.html')) {
 
                 tr.innerHTML = `
                     <td>${c.stt}</td>
-                    <td>${c.code}</td>
-                    <td style="text-align: center; font-weight: 600;">${c.name}</td>
-                    <td>${c.tc}</td>
-                    <td>${c.type}</td>
+                    <td>${escapeReportHTML(c.code)}</td>
+                    <td style="text-align: center; font-weight: 600;">${escapeReportHTML(c.name)}</td>
+                    <td>${escapeReportHTML(c.tc)}</td>
+                    <td>${escapeReportHTML(c.type)}</td>
                     <td>${c.lt}</td><td>${c.th}</td><td>${c.bt}</td>
                     <td>${k2025PriorLabel(c)}</td>
                     <td class="td-status ${statusClass}">${displayStatus}</td>
@@ -4264,10 +4245,10 @@ if (window.location.pathname.includes('module-foundation.html')) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${c.stt}</td>
-                <td>${c.code}</td>
-                <td style="text-align: center; font-weight: 600;">${c.name}</td>
-                <td>${c.tc}</td>
-                <td>${c.type}</td>
+                <td>${escapeReportHTML(c.code)}</td>
+                <td style="text-align: center; font-weight: 600;">${escapeReportHTML(c.name)}</td>
+                <td>${escapeReportHTML(c.tc)}</td>
+                <td>${escapeReportHTML(c.type)}</td>
                 <td>${c.lt}</td><td>${c.th}</td><td>${c.bt}</td>
                 <td>${k2025PriorLabel(c)}</td>
                 <td class="td-status ${statusClass}">${displayStatus}</td>
@@ -4406,10 +4387,10 @@ if (window.location.pathname.includes('module-major.html')) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${c.stt}</td>
-                <td>${c.code}</td>
-                <td style="text-align: center; font-weight: 600;">${c.name}</td>
-                <td>${c.tc}</td>
-                <td>${c.type}</td>
+                <td>${escapeReportHTML(c.code)}</td>
+                <td style="text-align: center; font-weight: 600;">${escapeReportHTML(c.name)}</td>
+                <td>${escapeReportHTML(c.tc)}</td>
+                <td>${escapeReportHTML(c.type)}</td>
                 <td>${c.lt}</td><td>${c.th}</td><td>${c.bt}</td>
                 <td>${k2025PriorLabel(c)}</td>
                 <td class="td-status ${statusClass}">${displayStatus}</td>
@@ -4839,6 +4820,7 @@ if (window.location.pathname.includes('graduation.html')) {
                 const limits = {'VNU-EPT':176,'IELTS':4,'TOEFL (iBT)':32,'PET':80};
                 if (!Object.prototype.hasOwnProperty.call(limits,type)) return invalid('Chứng chỉ chưa thuộc danh sách Điều 6.');
                 if (type === 'VNU-EPT' && score > 400) return invalid('VNU-EPT có thang điểm tối đa 400.');
+                if (type === 'TOEFL (iBT)' && (score>120 || !Number.isInteger(score))) return invalid('TOEFL iBT phải là điểm nguyên từ 0 đến 120.');
                 if (type === 'PET' && score > 170) return invalid('PET có thang điểm tối đa 170.');
                 if (type === 'IELTS') {
                     if (score > 9) return invalid('IELTS chỉ có thang điểm 0–9.0.');
@@ -5116,6 +5098,7 @@ if (window.location.pathname.includes('settings.html')) {
                             if (!importedUser.stats || !Array.isArray(importedUser.stats.gradesList) || validateImportedGrades(importedUser.stats.gradesList).length) throw new Error('Dữ liệu bảng điểm không hợp lệ');
                             importedUser.stats.gradesList = mergeGradesReplacingOld([], importedUser.stats.gradesList);
                             importedUser.stats.totalCredits = 138;
+                            importedUser.major = KHMT_MAJOR_NAMES.includes(importedUser.major) ? importedUser.major : (KHMT_MAJOR_NAMES.includes(currentUser.major) ? currentUser.major : 'Khoa học máy tính');
                             importedUser.password = currentUser.password;
                             importedUser.fullname = currentUser.fullname;
                             saveUserToStorage(importedUser);
@@ -5226,13 +5209,13 @@ if (window.location.pathname.includes('goals.html')) {
         }
 
         // 2. Logic Phân tích Mục tiêu
-        function analyzeGoal() {
-            const goalGPA = parseFloat(document.getElementById('goal-gpa-input').value) || 8.0;
+        function analyzeGoal(persist=true) {
+            const rawGoal = document.getElementById('goal-gpa-input').value;
+            const goalGPA = isValidScoreInput(rawGoal) ? Number(rawGoal) : 8.0;
             const rankSelect = document.getElementById('goal-rank-select');
             const rankText = rankSelect.options[rankSelect.selectedIndex].text.split(' (')[0];
 
-            currentUser.stats.goal = { gpa: goalGPA, rank: rankText };
-            saveGoalToStorage(currentUser);
+            if(persist){currentUser.stats.goal = { gpa: goalGPA, rank: rankText }; saveGoalToStorage(currentUser);}
 
             const reqValEl = document.getElementById('required-gpa-val');
             const badgeEl = document.getElementById('success-status-badge');
@@ -5272,7 +5255,7 @@ if (window.location.pathname.includes('goals.html')) {
                 badgeEl.style.backgroundColor = currentGPA >= goalGPA ? '#dcfce7' : '#fee2e2';
                 badgeEl.style.color = currentGPA >= goalGPA ? '#10b981' : '#ef4444';
             } else {
-                reqValEl.textContent = `${requiredGPA.toFixed(2)} / 10`;
+                reqValEl.textContent = `${Math.max(0,requiredGPA).toFixed(2)} / 10`;
                 
                 // Tính tỉ lệ thành công & độ khó
                 let rate = 100;
@@ -5316,7 +5299,7 @@ if (window.location.pathname.includes('goals.html')) {
                     if(count >= 2) return; 
                     let targetSc = c.score + 1.5 > 10 ? 10 : c.score + 1.5; 
                     let gain = ((targetSc - c.score) * c.tc) / creditsForGPA;
-                    suggList.innerHTML += `<li><strong>${c.name}</strong> (từ ${c.score.toFixed(1)} lên >= ${targetSc.toFixed(1)} để tăng ~${gain.toFixed(2)} GPA tích lũy)</li>`;
+                    suggList.innerHTML += `<li><strong>${escapeReportHTML(c.name)}</strong> (từ ${c.score.toFixed(1)} lên >= ${targetSc.toFixed(1)} để tăng ~${gain.toFixed(2)} GPA tích lũy)</li>`;
                     count++;
                 });
             } else {
@@ -5353,10 +5336,11 @@ if (window.location.pathname.includes('goals.html')) {
         }
 
         // Chạy phân tích lần đầu
-        analyzeGoal();
+        analyzeGoal(false);
 
         // 3. Trình Mô Phỏng What-If
-        let whatifCourses = [];
+        let whatifCourses = Array.isArray(currentUser.stats.whatifCourses) ? currentUser.stats.whatifCourses.filter(g=>g&&isValidScoreInput(g.score)&&Number.isInteger(Number(g.tc))&&Number(g.tc)>0) : [];
+        function persistWhatIf(){currentUser.stats.whatifCourses=whatifCourses;saveGoalToStorage(currentUser);}
         const wiModal = document.getElementById('whatif-modal');
         let editingWiIndex = -1;
 
@@ -5422,7 +5406,7 @@ if (window.location.pathname.includes('goals.html')) {
                     button.setAttribute('role', 'option');
                     const code = document.createElement('strong'); code.textContent = c.code;
                     const name = document.createElement('span'); name.textContent = c.name;
-                    const credits = document.createElement('small'); credits.textContent = c.tc ? `${c.tc} TC` : '';
+                    const credits = document.createElement('small'); credits.textContent = c.tc ? `${escapeReportHTML(c.tc)} TC` : '';
                     button.append(code,name,credits);
                     button.addEventListener('mousedown', e => e.preventDefault());
                     button.addEventListener('click', () => chooseWiCourse(c));
@@ -5464,11 +5448,11 @@ if (window.location.pathname.includes('goals.html')) {
             whatifCourses.forEach((c, index) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${c.code}</td>
-                    <td style="text-align: left; font-weight: 700;">${c.name}</td>
-                    <td>${c.tc}</td>
-                    <td>${c.type}</td>
-                    <td style="font-weight: 800; color: #1a498b;">${c.score}</td>
+                    <td>${escapeReportHTML(c.code)}</td>
+                    <td style="text-align: left; font-weight: 700;">${escapeReportHTML(c.name)}</td>
+                    <td>${escapeReportHTML(c.tc)}</td>
+                    <td>${escapeReportHTML(c.type)}</td>
+                    <td style="font-weight: 800; color: #1a498b;">${escapeReportHTML(c.score)}</td>
                     <td>
                         <button class="btn-wi-action btn-wi-edit" onclick="editWhatIf(${index})">Sửa</button>
                         <button class="btn-wi-action btn-wi-del" onclick="delWhatIf(${index})">Xóa</button>
@@ -5508,7 +5492,7 @@ if (window.location.pathname.includes('goals.html')) {
 
         window.delWhatIf = function(index) {
             whatifCourses.splice(index, 1);
-            renderWhatIfTable();
+            persistWhatIf(); renderWhatIfTable();
         };
 
         document.getElementById('btn-add-whatif').addEventListener('click', () => {
@@ -5531,7 +5515,8 @@ if (window.location.pathname.includes('goals.html')) {
         document.getElementById('btn-save-wi').addEventListener('click', () => {
             const code = document.getElementById('wi-code').value.trim().toUpperCase() || 'UNK';
             const name = document.getElementById('wi-name').value.trim() || 'Môn giả định';
-            const tc = parseInt(document.getElementById('wi-credits').value) || 4;
+            const tc = getStandardCredit(code, Number(document.getElementById('wi-credits').value));
+            if(!Number.isInteger(tc)||tc<=0){alert('Số tín chỉ không hợp lệ');return;}
             const type = document.getElementById('wi-type').value;
             const scoreInput = document.getElementById('wi-score');
             if (!isValidScoreInput(scoreInput.value)) {
@@ -5548,6 +5533,7 @@ if (window.location.pathname.includes('goals.html')) {
             } else {
                 whatifCourses.push(newItem);
             }
+            persistWhatIf();
 
             hideWiSuggestions();
             wiModal.style.display = 'none';
