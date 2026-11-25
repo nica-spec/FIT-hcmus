@@ -2,7 +2,7 @@
  * All libraries (Chart.js, SheetJS, html2pdf.js, Font Awesome, Montserrat) are bundled locally in ./vendor/.
  * Academic records stay in the browser's localStorage; no grade data is sent externally.
  */
-const OFFLINE_VERSION = 'fit-hcmus-offline-20261123-grade-cards-v6';
+const OFFLINE_VERSION = 'fit-hcmus-offline-20261125-auto-graduation-credits-v1';
 const SHELL_CACHE = OFFLINE_VERSION + '-shell';
 const RUNTIME_CACHE = OFFLINE_VERSION + '-runtime';
 const APP_SHELL = [

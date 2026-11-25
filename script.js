@@ -1492,6 +1492,7 @@ function exportGraduationReport(user) {
     const overrides=user.stats?.graduationOverrides || {};
     const passCodes=new Set(grades.filter(isPassedCourse).map(g=>String(g.code||'').trim().toUpperCase()));
     const status=(id,auto)=>{
+      if (id === 'credits') return auto;
       const custom=overrides[id];
       if (id==='foreign_lang' && custom?.certType) {
           const scores=String(custom.certScore ?? '').trim();
@@ -4718,7 +4719,7 @@ if (window.location.pathname.includes('graduation.html')) {
                 },
                 credits: {
                     done: earnedCredits >= totalTargetCredits,
-                    note: earnedCredits > 0 ? `${earnedCredits} / ${totalTargetCredits} tín chỉ` : ''
+                    note: `${earnedCredits} / ${totalTargetCredits} tín chỉ`
                 },
                 gpa_rank: {
                     done: creditsForGPA > 0 && gpa10 >= 5.0,
@@ -4747,7 +4748,7 @@ if (window.location.pathname.includes('graduation.html')) {
             let completedCount = 0;
 
             conditionDefinitions.forEach((cond, idx) => {
-                const custom = overrides[cond.id];
+                const custom = cond.id === 'credits' ? undefined : overrides[cond.id];
                 let isDone = autoData[cond.id].done;
                 let noteText = autoData[cond.id].note;
 
@@ -4781,9 +4782,7 @@ if (window.location.pathname.includes('graduation.html')) {
                         <div class="grad-note-mobile" aria-label="Chi tiết điều kiện"></div>
                     </td>
                     <td>
-                        <button class="btn-grad-edit" onclick="openGradEditModal(${idx})" title="Chỉnh sửa điều kiện">
-                            <i class="fa-regular fa-pen-to-square"></i>
-                        </button>
+                        ${cond.id === 'credits' ? '<span title="Tự động tính từ bảng điểm"><i class="fa-solid fa-lock" aria-hidden="true"></i> Tự động</span>' : `<button class="btn-grad-edit" onclick="openGradEditModal(${idx})" title="Chỉnh sửa điều kiện"><i class="fa-regular fa-pen-to-square"></i></button>`}
                     </td>
                 `;
                 const noteDesktop = tr.querySelector('.grad-note-desktop');
@@ -4867,8 +4866,9 @@ if (window.location.pathname.includes('graduation.html')) {
         const certInfoModal = document.getElementById('cert-info-modal');
 
         window.openGradEditModal = function(index) {
-            editingCondIndex = index;
             const cond = conditionDefinitions[index];
+            if (!cond || cond.id === 'credits') return;
+            editingCondIndex = index;
             const autoData = evaluateAutoConditions();
             const custom = currentUser.stats.graduationOverrides[cond.id];
 
@@ -4926,6 +4926,7 @@ if (window.location.pathname.includes('graduation.html')) {
             btnSaveGrad.addEventListener('click', () => {
                 if (editingCondIndex === -1) return;
                 const cond = conditionDefinitions[editingCondIndex];
+                if (!cond || cond.id === 'credits') return;
                 const mode = document.getElementById('grad-modal-status').value;
                 const note = document.getElementById('grad-modal-note').value.trim();
 
