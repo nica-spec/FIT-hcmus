@@ -68,13 +68,13 @@
                             <label for="btn-filter-sem" class="sr-only">Lọc theo học kỳ</label>
                             <select id="btn-filter-sem" class="control-btn grades-filter-select" aria-label="Lọc theo học kỳ">
                                 <option value="">Tất cả học kỳ</option>
-                            </select>
+                            </select><select id="btn-filter-group" class="control-btn grades-filter-select" aria-label="Lọc theo nhóm môn"><option value="">Tất cả nhóm môn</option><option value="politics">Lý luận chính trị</option><option value="skills">Kỹ năng</option><option value="math">Toán – KHTN</option><option value="it">Tin học đại cương</option><option value="foundation">Cơ sở ngành</option><option value="major">Chuyên ngành</option><option value="graduation">Tốt nghiệp</option><option value="language">Ngoại ngữ / điều kiện</option><option value="other">Khác</option></select>
                             <button type="button" id="btn-clear-grades-filter" class="control-btn grades-filter-clear" title="Xóa bộ lọc">Xóa lọc</button>
                         </div>
                         <div class="control-row">
                             <i class="fas fa-sort-alpha-down icon-blue"></i>
                             <span class="control-label">Sắp xếp:</span>
-                            <button id="btn-sort-name" class="control-btn">Tên môn (A - Z)</button>
+                            <button id="btn-sort-name" class="control-btn">Tên môn (A - Z)</button><select id="btn-sort-score" class="control-btn grades-filter-select" aria-label="Sắp xếp theo điểm"><option value="">Theo điểm</option><option value="desc">Điểm cao → thấp</option><option value="asc">Điểm thấp → cao</option></select>
                         </div>
                     </div>
                     <div class="toolbar-right">
@@ -196,9 +196,9 @@
             <div class="modal-row">
                 <label>Chọn năm học:</label>
                 <select id="m-year" class="modal-input modal-select" required>
-                    <option value="" disabled selected hidden>Mặc định: 25 - 26</option>
-                    <option value="25 - 26">25 - 26</option>
-                    <option value="26 - 27">26 - 27</option><option value="27 - 28">27 - 28</option><option value="28 - 29">28 - 29</option><option value="29 - 30">29 - 30</option>
+                    <option value="" disabled selected hidden>Mặc định: 2025-2026</option>
+                    <option value="2025-2026">2025-2026</option>
+                    <option value="2026-2027">2026-2027</option><option value="2027-2028">2027-2028</option><option value="2028-2029">2028-2029</option><option value="2029-2030">2029-2030</option>
                 </select>
             </div>
             
@@ -266,8 +266,8 @@
             <div class="modal-row form-inline-row">
                 <label>Chọn năm học:</label>
                 <select id="e-year" class="modal-input gray-pill">
-                    <option value="25 - 26">25 - 26</option>
-                    <option value="26 - 27">26 - 27</option><option value="27 - 28">27 - 28</option><option value="28 - 29">28 - 29</option><option value="29 - 30">29 - 30</option>
+                    <option value="2025-2026">2025-2026</option>
+                    <option value="2026-2027">2026-2027</option><option value="2027-2028">2027-2028</option><option value="2028-2029">2028-2029</option><option value="2029-2030">2029-2030</option>
                 </select>
             </div>
             
@@ -307,7 +307,7 @@
             </div>
 
             <div class="modal-row form-inline-row" style="margin-top: 15px;">
-                <label>Chọn lại học phần:</label>
+                <label>Loại học phần (giữ nguyên khi sửa):</label>
                 <div class="pill-group" id="e-type-group">
                     <button class="pill-btn gray-pill" data-val="">Học phần mới</button>
                     <button class="pill-btn gray-pill" data-val="Học phần học lại">Học phần học lại</button>
