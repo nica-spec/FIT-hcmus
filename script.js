@@ -1689,7 +1689,7 @@ function mergeGradesReplacingOld(oldGrades, incomingGrades) {
         if (!g || typeof g !== 'object') continue;
         const code = canonicalCurriculumCode(g.code);
         if (!code) continue;
-        const clean = { ...g, code, score: hasCourseScore(g) ? roundFinalScore(g.score) : g.score, status: getCourseStatus(g) };
+        const clean = { ...g, code, year:normalizedImportYear(g.year)||g.year, score: hasCourseScore(g) ? roundFinalScore(g.score) : g.score, status: getCourseStatus(g) };
         if (map.has(code)) map.delete(code);
         map.set(code, clean);
     }
@@ -2029,7 +2029,7 @@ if (window.location.pathname.includes('module-math.html')) {
         document.getElementById('display-fullname').textContent = currentUser.fullname;
         document.getElementById('display-mssv').textContent = `MSSV: ${currentUser.studentId}`;
 
-        const courseData = CTDT_KHMT_2025.math.map((c,i)=>({...c,stt:String(i+1),name:({math_choice:'[Chọn 4 TC] ',science_choice:'[Chọn 6 TC] ',environment_choice:'[Chọn 2 TC] '})[c.section] ? ({math_choice:'[Chọn 4 TC] ',science_choice:'[Chọn 6 TC] ',environment_choice:'[Chọn 2 TC] '})[c.section]+c.name : c.name}));
+        const courseData = CTDT_KHMT_2025.math.map((c,i)=>({...c,stt:String(i+1)}));
 
         const grades = currentUser.stats.mathGrades || {};
         const gradesList = getLatestCourses(currentUser.stats?.gradesList || []);
@@ -2038,8 +2038,11 @@ if (window.location.pathname.includes('module-math.html')) {
         let passedCreds = 0, passedCourses = 0, failedCourses = 0;
         const totalCreds = 36; 
         const totalCourses = courseData.length;
-
+        let lastChoice = '';
         courseData.forEach(c => {
+            const heading = ({math_choice:'Chọn 01 học phần (04 tín chỉ) từ các học phần Toán học sau',science_choice:'Chọn 06 tín chỉ từ các học phần Khoa học tự nhiên sau',environment_choice:'Chọn 02 tín chỉ từ các học phần Môi trường sau'})[c.section];
+            if(heading && lastChoice !== c.section){const row=document.createElement('tr');const td=document.createElement('td');td.colSpan=10;td.className='group-header';td.textContent=heading;row.appendChild(td);tbody.appendChild(row);}
+            lastChoice=c.section;
             const tr = document.createElement('tr');
             if (c.isHeader) {
                 tr.innerHTML = `<td>${c.stt}</td><td colspan="9" class="group-header">${escapeReportHTML(c.name)}</td>`;
@@ -2279,6 +2282,9 @@ if (window.location.pathname.includes('grades.html')) {
     let selectedAcademicYear = '';
     let selectedSemester = '';
     let isSortNameActive = false;
+    let selectedGroup = '', selectedScoreSort = '';
+    const gradeGroup = g => isExcludedCourse(g)?'language':(CTDT_COURSE_INDEX[canonicalCurriculumCode(g.code)]?.group || 'other');
+    function gradeTableMetrics(grades){const m=getCourseMetrics(grades);return {...m,earnedCredits:m.passedCredits};}
     const normalizeAcademicYear = value => {
         const text = String(value ?? '').trim();
         if (!text) return '';
@@ -2298,7 +2304,7 @@ if (window.location.pathname.includes('grades.html')) {
     const academicYearLabel = year => {
         const normalized = normalizeAcademicYear(year);
         const matched = normalized.match(/^(\d{4})-(\d{4})$/);
-        return matched ? `${matched[1].slice(-2)} - ${matched[2].slice(-2)}` : String(year);
+        return matched ? normalized : String(year);
     };
     function updateGradeFilterMenus(grades) {
         const yearSelect = document.getElementById('btn-filter-year');
@@ -2340,7 +2346,7 @@ if (window.location.pathname.includes('grades.html')) {
             if (!container || !summary) return;
             container.replaceChildren();
             summary.replaceChildren();
-            const metrics = getCourseMetrics(allGrades);
+            const metrics = gradeTableMetrics(allGrades);
             const passed = allGrades.filter(g=>countsForGPA(g)&&isPassedCourse(g)).length;
             const failed = allGrades.filter(g=>countsForGPA(g)&&isFailedCourse(g)).length;
             const stats = [
@@ -2407,7 +2413,7 @@ if (window.location.pathname.includes('grades.html')) {
                 const details = document.createElement('div');
                 details.className = 'mobile-grade-details';
                 details.hidden = true;
-                const fields = [['Năm học',g.year],['Học kỳ',normalizeSemester(g.sem)==='3'?'HK3 – Hè':'HK'+(normalizeSemester(g.sem)||'—')],['Loại',g.note||'Học phần mới']];
+                const fields = [['Năm học',normalizeAcademicYear(g.year)],['Học kỳ',normalizeSemester(g.sem)==='3'?'HK3 – Hè':'HK'+(normalizeSemester(g.sem)||'—')],['Loại',g.note||'Học phần mới']];
                 fields.forEach(([label,value]) => {
                     const field = document.createElement('div');
                     field.className = 'mobile-grade-detail-row';
@@ -2473,9 +2479,9 @@ if (window.location.pathname.includes('grades.html')) {
             // Chỉ lọc bảng hiển thị; thống kê dưới bảng luôn dựa trên toàn bộ học phần.
             const tableRows = userGrades.filter(g =>
                 (!selectedAcademicYear || normalizeAcademicYear(g.year) === selectedAcademicYear) &&
-                (!selectedSemester || normalizeSemester(g.sem) === selectedSemester)
+                (!selectedSemester || normalizeSemester(g.sem) === selectedSemester) && (!selectedGroup || gradeGroup(g) === selectedGroup)
             );
-            if (isSortNameActive) tableRows.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'vi'));
+            if (selectedScoreSort) tableRows.sort((a,b)=>!hasCourseScore(a)?(!hasCourseScore(b)?0:1):!hasCourseScore(b)?-1:(selectedScoreSort==='desc'?Number(b.score)-Number(a.score):Number(a.score)-Number(b.score))); else if (isSortNameActive) tableRows.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'vi'));
             const tbody = document.getElementById('grades-table-body');
             tbody.innerHTML = '';
             const filterSummary = document.getElementById('grades-filter-summary');
@@ -2531,7 +2537,7 @@ if (window.location.pathname.includes('grades.html')) {
                 const originalIndex = storedGrades.findIndex(item => canonicalCurriculumCode(item.code) === canonicalCurriculumCode(g.code));
                 tbody.innerHTML += `
                         <tr>
-                            <td>${index + 1}</td><td>${escapeReportHTML(g.year)}</td><td>${escapeReportHTML(g.sem)}</td><td>${escapeReportHTML(g.code)}</td>
+                            <td>${index + 1}</td><td>${escapeReportHTML(normalizeAcademicYear(g.year))}</td><td>${escapeReportHTML(g.sem)}</td><td>${escapeReportHTML(g.code)}</td>
                             <td style="font-weight: 500; text-align: left;">${escapeReportHTML(g.name)}</td>
                             <td>${escapeReportHTML(g.tc)}</td>
                             <td>
@@ -2551,19 +2557,21 @@ if (window.location.pathname.includes('grades.html')) {
                     
             });
 
-            renderMobileGradeCards(tableRows, userGrades, storedGrades);
-            const metrics = getCourseMetrics(userGrades);
+            renderMobileGradeCards(tableRows, tableRows, storedGrades);
+            const metrics = gradeTableMetrics(tableRows);
+            const overallMetrics = getCourseMetrics(userGrades);
+            regCredits = tableRows.reduce((n,g)=>n+getStandardCredit(g.code,g.tc),0);
             earnedCredits = metrics.earnedCredits;
             totalCreditsForGPA = metrics.attemptedCredits;
             let newGPA = metrics.gpa10;
             let newGPA4 = metrics.gpa4;
-            totalPassed = userGrades.filter(g=>countsForGPA(g)&&isPassedCourse(g)).length;
-            totalFailed = userGrades.filter(g=>countsForGPA(g)&&isFailedCourse(g)).length;
-            const professionalCount = userGrades.filter(g=>countsForGPA(g)).length;
+            totalPassed = tableRows.filter(g=>countsForGPA(g)&&isPassedCourse(g)).length;
+            totalFailed = tableRows.filter(g=>countsForGPA(g)&&isFailedCourse(g)).length;
+            const professionalCount = tableRows.filter(g=>countsForGPA(g)).length;
 
-            currentUser.stats.gpa = metrics.passedGPA10;
-            currentUser.stats.gpa4 = metrics.passedGPA4;
-            currentUser.stats.credits = earnedCredits;
+            currentUser.stats.gpa = overallMetrics.passedGPA10;
+            currentUser.stats.gpa4 = overallMetrics.passedGPA4;
+            currentUser.stats.credits = overallMetrics.earnedCredits;
 
             if (needsSync) {
                 saveCurrentUser();
@@ -2739,6 +2747,8 @@ if (window.location.pathname.includes('grades.html')) {
         const btnFilterSem = document.getElementById('btn-filter-sem');
         const btnSortName = document.getElementById('btn-sort-name');
         const clearGradesFilter = document.getElementById('btn-clear-grades-filter');
+        document.getElementById('btn-filter-group')?.addEventListener('change',e=>{selectedGroup=e.target.value;renderGrades();});
+        document.getElementById('btn-sort-score')?.addEventListener('change',e=>{selectedScoreSort=e.target.value;isSortNameActive=false;btnSortName?.classList.remove('active');renderGrades();});
 
         btnFilterYear?.addEventListener('change', event => {
             selectedAcademicYear = event.target.value;
@@ -2751,9 +2761,12 @@ if (window.location.pathname.includes('grades.html')) {
         clearGradesFilter?.addEventListener('click', () => {
             selectedAcademicYear = '';
             selectedSemester = '';
+            selectedGroup='';selectedScoreSort='';isSortNameActive=false;
+            document.getElementById('btn-filter-group').value='';document.getElementById('btn-sort-score').value='';btnSortName?.classList.remove('active');
             renderGrades();
         });
         btnSortName?.addEventListener('click', () => {
+            selectedScoreSort='';document.getElementById('btn-sort-score').value='';
             isSortNameActive = !isSortNameActive;
             btnSortName.classList.toggle('active', isSortNameActive);
             renderGrades();
@@ -2895,17 +2908,17 @@ if (window.location.pathname.includes('grades.html')) {
         function lockTypeButtons(groupId, expectedType) {
             document.querySelectorAll('#' + groupId + ' .pill-btn').forEach(btn => {
                 const allowed = btn.dataset.val === expectedType;
-                btn.hidden = !allowed;
-                btn.style.display = allowed ? '' : 'none';
+                btn.hidden = false;
+                btn.style.display = '';
                 btn.disabled = !allowed;
                 btn.classList.toggle('active', allowed);
                 btn.setAttribute('aria-pressed', String(allowed));
             });
         }
         function findStoredCourseByCode(code) {
-            const key = String(code || '').trim().toUpperCase();
+            const key = canonicalCurriculumCode(code);
             return (currentUser.stats.gradesList || []).find(g =>
-                String(g.code || '').trim().toUpperCase() === key
+                canonicalCurriculumCode(g.code) === key
             );
         }
         function syncManualRepeatType() {
@@ -3018,7 +3031,8 @@ if (window.location.pathname.includes('grades.html')) {
         document.getElementById('btn-submit-course').addEventListener('click', () => {
           try {
             if (manualStatus) { manualStatus.textContent = ''; manualStatus.style.display = 'none'; }
-            const yearVal = document.getElementById('m-year').value || '25 - 26';
+            const yearVal = normalizedImportYear(document.getElementById('m-year').value || '2025-2026');
+            if(!yearVal){showManualStatus('Năm học không hợp lệ.');return;}
             const codeVal = canonicalCurriculumCode(document.getElementById('m-code').value);
             if (!codeVal) { showManualStatus('Vui lòng nhập mã học phần.'); return; }
 
@@ -3112,6 +3126,7 @@ if (window.location.pathname.includes('grades.html')) {
             if (!currentUser.stats.gradesList) {
                 currentUser.stats.gradesList = [];
             }
+            if(existingCourse && !confirm('Thay thế kết quả cũ của '+codeVal+' bằng kết quả '+(selectedType||'mới')+'?')) return;
             currentUser.stats.gradesList = mergeGradesReplacingOld(currentUser.stats.gradesList, [newCourse]);
             
             saveCurrentUser();
@@ -3269,7 +3284,7 @@ if (window.location.pathname.includes('grades.html')) {
             const course = currentUser.stats.gradesList[index];
             if (!course) return;
 
-            document.getElementById('e-year').value = course.year || '25 - 26';
+            document.getElementById('e-year').value = normalizedImportYear(course.year) || '2025-2026';
             document.getElementById('e-code').value = course.code || '';
             
             const courseSemester = normalizeSemester(course.sem) || '1';
@@ -3279,7 +3294,7 @@ if (window.location.pathname.includes('grades.html')) {
                 btn.setAttribute('aria-pressed', String(active));
             });
 
-            lockTypeButtons('e-type-group', expectedRepeatType(course));
+            lockTypeButtons('e-type-group', course.note || '');
 
             let existingScores = course.scoresList;
             if (!existingScores || existingScores.length === 0) {
@@ -3307,7 +3322,7 @@ if (window.location.pathname.includes('grades.html')) {
         document.querySelectorAll('#e-type-group .pill-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const record = currentUser.stats.gradesList[editingIndex];
-                if (record) lockTypeButtons('e-type-group', expectedRepeatType(record));
+                if (record) lockTypeButtons('e-type-group', record.note || '');
             });
         });
 
@@ -3367,7 +3382,7 @@ if (window.location.pathname.includes('grades.html')) {
 
             const originalCourse = currentUser.stats.gradesList[editingIndex];
             if(!getStandardCredit(updatedCode,canonicalCurriculumCode(originalCourse.code)===updatedCode?originalCourse.tc:0)){alert('Chưa xác minh số tín chỉ của mã môn này.');return;}
-            const requiredEditType = expectedRepeatType(originalCourse);
+            const requiredEditType = originalCourse.note || '';
             // Sửa điểm của chính môn đang có không phải đăng ký mới.
             // Khi đổi mã môn thành môn chuyên ngành khác, áp dụng kiểm tra như thao tác Thêm.
             if (String(originalCourse.code || '').trim().toUpperCase() !== updatedCode) {
@@ -3418,7 +3433,8 @@ if (window.location.pathname.includes('grades.html')) {
             const activeType = requiredEditType;
             lockTypeButtons('e-type-group', activeType);
             
-            currentUser.stats.gradesList[editingIndex].year = document.getElementById('e-year').value;
+            const editYear=normalizedImportYear(document.getElementById('e-year').value);if(!editYear){alert('Năm học không hợp lệ.');return;}
+            currentUser.stats.gradesList[editingIndex].year = editYear;
             currentUser.stats.gradesList[editingIndex].sem = activeSem;
             currentUser.stats.gradesList[editingIndex].code = updatedCode;
             currentUser.stats.gradesList[editingIndex].name = courseDictionary[updatedCode] || "Học phần tự chọn";
@@ -4506,7 +4522,8 @@ if (window.location.pathname.includes('module-major.html')) {
         const group3NoteCell = document.createElement('td');
         group3NoteCell.colSpan = 10;
         group3NoteCell.style.cssText = 'text-align:left;padding:14px 16px;white-space:normal;color:#64748b;font-style:italic;';
-        group3NoteCell.textContent = 'Chọn học phần hợp lệ tại Phụ lục 1 nếu tổng tín chỉ của Nhóm 1 và Nhóm 2 chưa đủ 34. Xem hướng dẫn chi tiết bên dưới bảng.';
+        group3NoteCell.innerHTML = 'Chọn học phần hợp lệ tại <a href="#appendix1">Phụ lục 1</a> nếu tổng tín chỉ của Nhóm 1 và Nhóm 2 chưa đủ 34. Xem hướng dẫn chi tiết bên dưới bảng.';
+        const appendix=document.createElement('details');appendix.id='appendix1';const title=document.createElement('summary');title.textContent='Phụ lục 1 – Danh mục tự chọn tự do đã đối chiếu';appendix.appendChild(title);const note=document.createElement('p');note.textContent='Dữ liệu hiện có: trang 1–4 của Phụ lục 1. Trang 5 chưa được đối chiếu.';appendix.appendChild(note);const list=document.createElement('ul');for(const code of [...VERIFIED_FREE_CODES].sort()){const li=document.createElement('li');li.textContent=code+' — '+(courseDictionary[code]||'Chưa xác minh tên');list.appendChild(li);}appendix.appendChild(list);tbody.closest('table').after(appendix);group3NoteCell.querySelector('a').addEventListener('click',()=>{appendix.open=true;});
         group3NoteRow.appendChild(group3NoteCell);
         tbody.appendChild(group3NoteRow);
         const chosenCodes=new Set(courseData.map(c=>c.code));
